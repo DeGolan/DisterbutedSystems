@@ -4,12 +4,12 @@ import org.apache.commons.io.FileUtils;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.rendering.ImageType;
 import org.apache.pdfbox.rendering.PDFRenderer;
+import org.apache.pdfbox.text.PDFTextStripper;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
 
@@ -29,6 +29,14 @@ public class PDFReader {
         }catch (Exception error) {//need to handle exceptions
             throw error;
         }
+        PDDocument pdf=PDDocument.load(new File("./src/main/resources/pdf/test.pdf"));
+//        Writer output = new PrintWriter("./src/output/pdf.html","utf-8");
+        PDFTextStripper stripper=null;
+        stripper.setStartPage(0);
+        stripper.setEndPage(0);
+        FileOutputStream fos = new FileOutputStream("./src/output/pdf.html");
+//        stripper.writeText(pdf,);
+        fos.close();
         //need to move to function
 //        PDDocument document = PDDocument.load(new File("./src/main/resources/pdf/test.pdf"));
 //        PDFRenderer pdfRenderer = new PDFRenderer(document);
