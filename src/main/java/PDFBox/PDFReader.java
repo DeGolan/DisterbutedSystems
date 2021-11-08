@@ -5,6 +5,7 @@ import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.rendering.ImageType;
 import org.apache.pdfbox.rendering.PDFRenderer;
 import org.apache.pdfbox.text.PDFTextStripper;
+import org.apache.pdfbox.tools.PDFText2HTML;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -20,41 +21,57 @@ public class PDFReader {
         System.out.println("Start working...");
         //example for a possible msg from sqs
         //ToImage	https://www.bethelnewton.org/images/Passover_Guide_BOOKLET.pdf
-        String command="ToImage";
+        String command="ToHTML";
         String fileURL="https://www.bethelnewton.org/images/Passover_Guide_BOOKLET.pdf";
 
         //get the name of the pdf
-        String pdfName=fileURL.substring(fileURL.lastIndexOf('/')+1);
+        String fileName=fileURL.substring(fileURL.lastIndexOf('/')+1,fileURL.lastIndexOf('.'));
 
         //try to download and save the pdf file
         try {
-            FileUtils.copyURLToFile(new URL(fileURL), new File("./src/main/resources/pdf/"+pdfName));
+            FileUtils.copyURLToFile(new URL(fileURL), new File("./src/main/resources/pdf/"+fileName+".pdf"));
+            PDDocument document = PDDocument.load(new File("./src/main/resources/pdf/"+fileName+".pdf"));
+            switch (command){
+                case "ToImage":
+                    toImage(document,fileName);
+                    break;
+                case "ToHTML":
+                    toHTML(document,fileName);
+                    break;
+                case "ToText":
+                    toText(document,fileName);
+                    break;
+            }
+            document.close();
         }catch (Exception error) {//need to handle exceptions
             throw error;
         }
-        //execute the command
-        switch (command){
-            case "ToImage":
-                toImage();
-                break;
-            case "ToHTML":
-                toHTML();
-                break;
-            case "ToText":
-                toText();
-                break;
-        }
     }
     ///converts the first page of the PDF file to a "png" image.
-    private static void toImage() throws IOException {
-        PDDocument document = PDDocument.load(new File("./src/main/resources/pdf/test.pdf"));
+    private static void toImage(PDDocument document,String filename) throws IOException {
         PDFRenderer pdfRenderer = new PDFRenderer(document);
         BufferedImage bim = pdfRenderer.renderImageWithDPI(0,300);
-        ImageIO.write(bim,"PNG",new File("./src/main/resources/png/test.png"));
-        document.close();
+        ImageIO.write(bim,"PNG",new File("./src/main/resources/png/"+filename+".png"));
+        System.out.println("The first page of "+filename+" has converted to Image");
     }
-    private static void toText() {
+    private static void toText(PDDocument document,String filename) throws IOException {
+        PDFTextStripper stripper=new PDFTextStripper();
+        stripper.setStartPage(2);//need to change to page 0
+        stripper.setEndPage(2);//need to change to page 0
+        String text=stripper.getText(document);
+        FileWriter file=new FileWriter("./src/main/resources/text/"+filename+".txt");
+        file.write(text);
+        file.close();
+        System.out.println("The first page of "+filename+" has converted to Text");
     }
-    private static void toHTML() {
+    private static void toHTML(PDDocument document,String filename) throws IOException {
+        PDFTextStripper stripper= new PDFText2HTML();
+        stripper.setStartPage(2);
+        stripper.setEndPage(2);
+        String text=stripper.getText(document);
+        FileWriter file=new FileWriter("./src/main/resources/HTML/"+filename+".html");
+        file.write(text);
+        file.close();
+        System.out.println("The first page of "+filename+" has converted to HTML");
     }
 }
