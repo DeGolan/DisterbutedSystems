@@ -14,36 +14,47 @@ import java.net.MalformedURLException;
 import java.net.URL;
 
 public class PDFReader {
-    //ToText	http://www.chabad.org/media/pdf/42/kUgi423322.pdf
-    public static void downloadFile(URL url, String fileName) throws IOException {
-        FileUtils.copyURLToFile(url, new File(fileName));
-    }
-    //ToImage - convert the first page of the PDF file to a "png" image.
 
     public static void main(String[] args) throws IOException {
 
-        System.out.println("hello");
+        System.out.println("Start working...");
+        //example for a possible msg from sqs
         //ToImage	https://www.bethelnewton.org/images/Passover_Guide_BOOKLET.pdf
+        String command="ToImage";
+        String fileURL="https://www.bethelnewton.org/images/Passover_Guide_BOOKLET.pdf";
+
+        //get the name of the pdf
+        String pdfName=fileURL.substring(fileURL.lastIndexOf('/')+1);
+
+        //try to download and save the pdf file
         try {
-            downloadFile(new URL("https://www.bethelnewton.org/images/Passover_Guide_BOOKLET.pdf"),"./src/main/resources/pdf/test.pdf");
+            FileUtils.copyURLToFile(new URL(fileURL), new File("./src/main/resources/pdf/"+pdfName));
         }catch (Exception error) {//need to handle exceptions
             throw error;
         }
-        PDDocument pdf=PDDocument.load(new File("./src/main/resources/pdf/test.pdf"));
-//        Writer output = new PrintWriter("./src/output/pdf.html","utf-8");
-        PDFTextStripper stripper=null;
-        stripper.setStartPage(0);
-        stripper.setEndPage(0);
-        FileOutputStream fos = new FileOutputStream("./src/output/pdf.html");
-//        stripper.writeText(pdf,);
-        fos.close();
-        //need to move to function
-//        PDDocument document = PDDocument.load(new File("./src/main/resources/pdf/test.pdf"));
-//        PDFRenderer pdfRenderer = new PDFRenderer(document);
-//        BufferedImage bim = pdfRenderer.renderImageWithDPI(0,300);
-//        ImageIO.write(bim,"PNG",new File("./src/main/resources/png/test.png"));
-//        document.close();
-
-
+        //execute the command
+        switch (command){
+            case "ToImage":
+                toImage();
+                break;
+            case "ToHTML":
+                toHTML();
+                break;
+            case "ToText":
+                toText();
+                break;
+        }
+    }
+    ///converts the first page of the PDF file to a "png" image.
+    private static void toImage() throws IOException {
+        PDDocument document = PDDocument.load(new File("./src/main/resources/pdf/test.pdf"));
+        PDFRenderer pdfRenderer = new PDFRenderer(document);
+        BufferedImage bim = pdfRenderer.renderImageWithDPI(0,300);
+        ImageIO.write(bim,"PNG",new File("./src/main/resources/png/test.png"));
+        document.close();
+    }
+    private static void toText() {
+    }
+    private static void toHTML() {
     }
 }
