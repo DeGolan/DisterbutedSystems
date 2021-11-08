@@ -5,6 +5,7 @@ import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.rendering.ImageType;
 import org.apache.pdfbox.rendering.PDFRenderer;
 import org.apache.pdfbox.text.PDFTextStripper;
+import org.apache.pdfbox.tools.PDFText2HTML;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -20,7 +21,7 @@ public class PDFReader {
         System.out.println("Start working...");
         //example for a possible msg from sqs
         //ToImage	https://www.bethelnewton.org/images/Passover_Guide_BOOKLET.pdf
-        String command="ToImage";
+        String command="ToHTML";
         String fileURL="https://www.bethelnewton.org/images/Passover_Guide_BOOKLET.pdf";
 
         //get the name of the pdf
@@ -63,6 +64,14 @@ public class PDFReader {
         file.close();
         System.out.println("The first page of "+filename+" has converted to Text");
     }
-    private static void toHTML(PDDocument document,String filename) {
+    private static void toHTML(PDDocument document,String filename) throws IOException {
+        PDFTextStripper stripper= new PDFText2HTML();
+        stripper.setStartPage(2);
+        stripper.setEndPage(2);
+        String text=stripper.getText(document);
+        FileWriter file=new FileWriter("./src/main/resources/HTML/"+filename+".html");
+        file.write(text);
+        file.close();
+        System.out.println("The first page of "+filename+" has converted to HTML");
     }
 }
