@@ -4,6 +4,10 @@ import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.List;
 
+
+import software.amazon.awssdk.services.sqs.SqsClient;
+import software.amazon.awssdk.services.sqs.model.*;
+import java.util.List;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.ec2.Ec2Client;
@@ -20,17 +24,23 @@ import software.amazon.awssdk.services.s3.S3Client;
 
 public class LocalApplication {
     public static void main(String[] args) {
-
+//        sqsClient.sendMessage(SendMessageRequest.builder()
+//                .queueUrl(queueUrl)
+//                .messageBody("Hello world!")
+//                .delaySeconds(10)
+//                .build());
         Region region = Region.US_EAST_1;
-
         //uploadPDFListToS3(region);
-
+        SqsClient sqsClient = SqsClient.builder()
+                .region(region)
+                .build();
 //        Ec2Client ec2 = Ec2Client.builder()
 //                .region(region)
 //                .build();
-//
 //        startManager(ec2);
 //        ec2.close();
+        sendMessageToSQS(sqsClient);
+        sqsClient.close();
     }
 
     //check if the instance tag is "Manager"
@@ -84,5 +94,13 @@ public class LocalApplication {
         System.out.println("Closing the connection to {S3}");
         s3.close();
         System.out.println("Connection closed");
+    }
+
+    public static void sendMessageToSQS (SqsClient sqsClient){
+        sqsClient.sendMessage(SendMessageRequest.builder()
+                .queueUrl("https://sqs.us-east-1.amazonaws.com/537488554861/LocalApp-Manager.fifo")
+                .messageBody("Hello world!")
+                .delaySeconds(0)
+                .build());
     }
 }
