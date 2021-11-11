@@ -30,7 +30,10 @@ public class LocalApplication {
 //                .delaySeconds(10)
 //                .build());
         Region region = Region.US_EAST_1;
-        //uploadPDFListToS3(region);
+        S3Client s3 = S3Client.builder().region(region).build();
+        String bucket = "dsps12bucket";
+        String key = "pdf_src";
+        //uploadPDFListToS3(s3, bucket, key region);
         SqsClient sqsClient = SqsClient.builder()
                 .region(region)
                 .build();
@@ -39,7 +42,7 @@ public class LocalApplication {
 //                .build();
 //        startManager(ec2);
 //        ec2.close();
-        sendMessageToSQS(sqsClient);
+        sendMessageToSQS(sqsClient, bucket, key);
         sqsClient.close();
     }
 
@@ -82,10 +85,7 @@ public class LocalApplication {
     }
 
     //uploading the pdf_src to the s3
-    public static void uploadPDFListToS3(Region region){
-        S3Client s3 = S3Client.builder().region(region).build();
-        String bucket = "dsps12bucket";
-        String key = "pdf_src";
+    public static void uploadPDFListToS3(S3Client s3, String bucket, String key, Region region){
         System.out.println("Uploading pdf source file to S3...");
         s3.putObject(PutObjectRequest.builder().bucket(bucket).key(key).build(),
                 RequestBody.fromFile(Paths.get("/home/vagrant/DistributedSystems/src/main/resources/input-sample-1.txt")));
@@ -96,11 +96,17 @@ public class LocalApplication {
         System.out.println("Connection closed");
     }
 
-    public static void sendMessageToSQS (SqsClient sqsClient){
-        sqsClient.sendMessage(SendMessageRequest.builder()
-                .queueUrl("https://sqs.us-east-1.amazonaws.com/537488554861/LocalApp-Manager.fifo")
-                .messageBody("Hello world!")
-                .delaySeconds(0)
-                .build());
+    public static void sendMessageToSQS (SqsClient sqsClient, String bucket, String key){
+        try {
+            SendMessageRequest send_msg_request = SendMessageRequest.builder()
+                    .queueUrl("https://sqs.us-east-1.amazonaws.com/537488554861/LocalApp-Manager")
+                    .messageBody("")
+                    .delaySeconds(5)
+                    .build();
+            sqsClient.sendMessage(send_msg_request);
+        } catch (QueueNameExistsException e) {
+            throw e;
+        }
+
     }
 }
