@@ -1,10 +1,10 @@
 package LocalApplication;
 
-import java.io.IOException;
+
 import java.nio.file.Paths;
-import java.util.List;
 
 
+import org.json.JSONObject;
 import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.awssdk.services.sqs.model.*;
 import java.util.List;
@@ -12,13 +12,8 @@ import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.ec2.Ec2Client;
 import software.amazon.awssdk.services.ec2.model.*;
-import software.amazon.awssdk.services.s3.model.CreateBucketConfiguration;
-import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
-import software.amazon.awssdk.services.s3.model.DeleteBucketRequest;
-import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
-import software.amazon.awssdk.services.s3.model.HeadBucketRequest;
+
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
-import software.amazon.awssdk.services.s3.model.S3Exception;
 import software.amazon.awssdk.services.s3.S3Client;
 
 
@@ -30,7 +25,7 @@ public class LocalApplication {
 //                .delaySeconds(10)
 //                .build());
         Region region = Region.US_EAST_1;
-        S3Client s3 = S3Client.builder().region(region).build();
+//        S3Client s3 = S3Client.builder().region(region).build();
         String bucket = "dsps12bucket";
         String key = "pdf_src";
         //uploadPDFListToS3(s3, bucket, key region);
@@ -42,7 +37,13 @@ public class LocalApplication {
 //                .build();
 //        startManager(ec2);
 //        ec2.close();
-        sendMessageToSQS(sqsClient, bucket, key);
+
+
+        JSONObject json=new JSONObject();
+        json.put("task","download pdf");
+        json.put("bucketName",bucket);
+        json.put("key",key);
+        sendMessageToSQS(sqsClient,json.toString());
         sqsClient.close();
     }
 
@@ -96,11 +97,11 @@ public class LocalApplication {
         System.out.println("Connection closed");
     }
 
-    public static void sendMessageToSQS (SqsClient sqsClient, String bucket, String key){
+    public static void sendMessageToSQS (SqsClient sqsClient, String msg){
         try {
             SendMessageRequest send_msg_request = SendMessageRequest.builder()
                     .queueUrl("https://sqs.us-east-1.amazonaws.com/537488554861/LocalApp-Manager")
-                    .messageBody("")
+                    .messageBody(msg)
                     .delaySeconds(5)
                     .build();
             sqsClient.sendMessage(send_msg_request);
