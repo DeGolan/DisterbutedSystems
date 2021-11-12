@@ -20,17 +20,13 @@ import software.amazon.awssdk.services.s3.S3Client;
 public class LocalApplication {
     public static void main(String[] args) {
         System.out.println("Local Application is running...");
-//        sqsClient.sendMessage(SendMessageRequest.builder()
-//                .queueUrl(queueUrl)
-//                .messageBody("Hello world!")
-//                .delaySeconds(10)
-//                .build());
+
         Region region = Region.US_EAST_1;
-//        S3Client s3 = S3Client.builder().region(region).build();
+        S3Client s3 = S3Client.builder().region(region).build();
         String bucket = "dsps12bucket";
         String key = "pdf_src";
         int numOfMsgsPerWorker=4;
-        //uploadPDFListToS3(s3, bucket, key region);
+        uploadPDFListToS3(s3, bucket, key ,region);
         SqsClient sqsClient = SqsClient.builder()
                 .region(region)
                 .build();
@@ -47,6 +43,7 @@ public class LocalApplication {
         json.put("key",key);
         json.put("number",numOfMsgsPerWorker);
         sendMessageToSQS(sqsClient,json.toString());
+
         sqsClient.close();
     }
 
@@ -105,7 +102,7 @@ public class LocalApplication {
             SendMessageRequest send_msg_request = SendMessageRequest.builder()
                     .queueUrl("https://sqs.us-east-1.amazonaws.com/537488554861/LocalApp-Manager")
                     .messageBody(msg)
-                    .delaySeconds(5)
+                  //  .delaySeconds(5)
                     .build();
             sqsClient.sendMessage(send_msg_request);
         } catch (QueueNameExistsException e) {

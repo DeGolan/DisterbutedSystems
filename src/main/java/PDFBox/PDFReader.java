@@ -22,10 +22,11 @@ public class PDFReader {
         String fileURL="https://www.bethelnewton.org/images/Passover_Guide_BOOKLET.pdf";
 
         //get the name of the pdf
-        String fileName=fileURL.substring(fileURL.lastIndexOf('/')+1,fileURL.lastIndexOf('.'));
+
 
         //try to download and save the pdf file
         try {
+            String fileName=fileURL.substring(fileURL.lastIndexOf('/')+1,fileURL.lastIndexOf('.'));
             FileUtils.copyURLToFile(new URL(fileURL), new File("./src/main/resources/pdf/"+fileName+".pdf"));
             PDDocument document = PDDocument.load(new File("./src/main/resources/pdf/"+fileName+".pdf"));
             switch (command){
