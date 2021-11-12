@@ -19,6 +19,7 @@ import software.amazon.awssdk.services.s3.S3Client;
 
 public class LocalApplication {
     public static void main(String[] args) {
+        System.out.println("Local Application is running...");
 //        sqsClient.sendMessage(SendMessageRequest.builder()
 //                .queueUrl(queueUrl)
 //                .messageBody("Hello world!")
@@ -28,6 +29,7 @@ public class LocalApplication {
 //        S3Client s3 = S3Client.builder().region(region).build();
         String bucket = "dsps12bucket";
         String key = "pdf_src";
+        int numOfMsgsPerWorker=4;
         //uploadPDFListToS3(s3, bucket, key region);
         SqsClient sqsClient = SqsClient.builder()
                 .region(region)
@@ -43,6 +45,7 @@ public class LocalApplication {
         json.put("task","download pdf");
         json.put("bucketName",bucket);
         json.put("key",key);
+        json.put("number",numOfMsgsPerWorker);
         sendMessageToSQS(sqsClient,json.toString());
         sqsClient.close();
     }

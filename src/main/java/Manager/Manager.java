@@ -18,15 +18,15 @@ import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
 import software.amazon.awssdk.services.sqs.model.SqsException;
 import software.amazon.awssdk.thirdparty.jackson.core.JsonParser;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
+import java.io.*;
 import java.nio.file.Paths;
+import java.util.LinkedList;
 import java.util.List;
+
 
 public class Manager {
     public static void main(String[] args) throws IOException {
+        System.out.println("Manager is starting...");
         Region region = Region.US_EAST_1;
         S3Client s3 = S3Client.builder().region(region).build();
         SqsClient sqsClient = SqsClient.builder()
@@ -48,6 +48,7 @@ public class Manager {
         if(json!=null && ((String)json.get("task")).equals("download pdf")){
             String bucket= (String) json.get("bucketName");
             String key= (String) json.get("key");
+            int number=(int)json.get("number");
             downloadPDFListFromS3(s3,bucket,key,region);
 
         }
@@ -80,10 +81,18 @@ public class Manager {
                     .bucket(bucket)
                     .build();
 
-            ResponseInputStream<GetObjectResponse> object=s3.getObject(objectRequest);
-            System.out.println(object.response().toString());
+            ResponseInputStream<GetObjectResponse> s3objectResponse=s3.getObject(objectRequest);
+            BufferedReader reader = new BufferedReader(new InputStreamReader(s3objectResponse));
 
-            object.close();
+            List<Message> msgs=new LinkedList<Message>() ;
+
+            String line;
+            while ((line = reader.readLine()) != null) {
+                System.out.println(line);
+            }
+
+            reader.close();
+            s3objectResponse.close();
 
 
             System.out.println("Upload complete");
