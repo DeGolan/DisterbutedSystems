@@ -1,6 +1,7 @@
 package Manager;
 
 import Tools.MessageProtocol;
+import Tools.S3Helper;
 import Tools.SQSHelper;
 import com.google.gson.Gson;
 import org.json.JSONObject;
@@ -31,11 +32,10 @@ public class Manager {
 
         boolean isFinished = false;
         AtomicBoolean terminateAll=new AtomicBoolean(false);
-        WorkHelper workHelper = new WorkHelper(terminateAll);
+        WorkHelper workHelper = new WorkHelper(terminateAll,"dsps12bucket");//TODO create bucket
         System.out.println("Manager is starting...");
 
         SQSHelper localManager = new SQSHelper("https://sqs.us-east-1.amazonaws.com/537488554861/LocalApp-Manager");//TODO enter url
-
 
         while (!isFinished) {
             List<Message> msgs = localManager.getMessages();
@@ -44,7 +44,6 @@ public class Manager {
                 String task = receivedMsg.getTask();
                 if (task.equals("Terminate")) {
                     //TODO terminate all
-
                     terminateAll.set(true);
                     workHelper.terminate();
                     isFinished = true;

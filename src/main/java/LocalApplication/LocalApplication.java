@@ -62,12 +62,12 @@ public class LocalApplication {
             List<Message> messages = sqsHelper.getMessages();
             for(Message msg : messages){
                 MessageProtocol receivedMsg = new MessageProtocol(new JSONObject(msg.body()));
-                if(receivedMsg.getTask().equals("Finished")){
+                if(receivedMsg.getTask().equals("finished")){
                     System.out.println("The manager finished his work");
                     s3Helper.downloadFile(outputFileName, receivedMsg.getBucketName() , receivedMsg.getKey()); //TODO downloadFile
                     if(shouldTerminate){
                         System.out.println("Should terminate");
-                        MessageProtocol terminateMsg = new MessageProtocol("Terminate", "","",0,"","");
+                        MessageProtocol terminateMsg = new MessageProtocol("Terminate", bucket,"",0,"","");
                         sqsHelper.sendMessageToSQS(terminateMsg);
                     }
                     gotResult = true;

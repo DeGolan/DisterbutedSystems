@@ -6,22 +6,32 @@ import org.json.JSONObject;
 import software.amazon.awssdk.services.sqs.model.Message;
 
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class WorkersControl implements Runnable{
     private SQSHelper sqsHelper;
     CopyOnWriteArrayList<String> summaryFile;
-    private AtomicInteger numOfWorkers;
+    private AtomicInteger numOfResponses;
+    private AtomicInteger numOfTasks;
+    private AtomicBoolean terminateAll;
+    private AtomicBoolean sendSummary;
 
-    public  WorkersControl(SQSHelper sqsHelper,CopyOnWriteArrayList summaryFile,AtomicInteger numOfWorkers){
+
+    public  WorkersControl(SQSHelper sqsHelper,CopyOnWriteArrayList summaryFile,AtomicInteger numOfResponses,
+                           AtomicInteger numOfTasks,AtomicBoolean terminateAll,AtomicBoolean sendSummary){
         this.sqsHelper=sqsHelper;
         this.summaryFile=summaryFile;
+        this.numOfResponses=numOfResponses;
+        this.numOfTasks=numOfTasks;
+        this.terminateAll=terminateAll;
+        this.sendSummary=sendSummary;
     }
 
     public void run() {
         boolean isFinished=false;
+
         while (!isFinished){
             List<Message> receivedMessages=sqsHelper.getMessages();
             for(Message message :receivedMessages){
@@ -31,9 +41,17 @@ public class WorkersControl implements Runnable{
 
                 if(status.equals("complete")){
                     summaryFile.add(msg.getKey());
+                    numOfResponses.incrementAndGet();
+                } else if (status.equals("error")) {
+                    numOfResponses.incrementAndGet();
                 }
-                else if (status.equals("dead")){
-                    isFinished = numOfWorkers.decrementAndGet() == 0;
+                if(numOfTasks.get()==numOfResponses.get()){
+                    if(sendSummary.compareAndSet(true,false)){
+                        WorkHelper.uploadSummary();
+                    }
+                    if(terminateAll.get()){
+                        isFinished=true;
+                    }
                 }
                 sqsHelper.deleteMessage(message);
             }
