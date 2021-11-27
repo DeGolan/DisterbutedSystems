@@ -13,15 +13,12 @@ public class MangerHelper {
     private Ec2Client ec2;
     public  MangerHelper (){
         region = software.amazon.awssdk.regions.Region.US_EAST_1;
-        Ec2Client ec2 = Ec2Client.builder()
+        ec2 = Ec2Client.builder()
                 .region(region)
                 .build();
     }
     public Region getRegion() {
         return region;
-    }
-    public S3Client getS3() {
-        return s3;
     }
 
     //check if the instance tag is "Manager"

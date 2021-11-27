@@ -25,7 +25,10 @@ import java.util.List;
 
 public class Manager {
     public static void main(String[] args) throws IOException {
+
         System.out.println("Manager is starting...");
+
+
         Region region = Region.US_EAST_1;
         S3Client s3 = S3Client.builder().region(region).build();
         SqsClient sqsClient = SqsClient.builder()
@@ -33,6 +36,7 @@ public class Manager {
                 .build();
         List<Message> messages =receiveMessages(sqsClient,"https://sqs.us-east-1.amazonaws.com/537488554861/LocalApp-Manager");
         JSONObject json = null;
+
         if (messages.size()>0){
             for (Message m: messages){
                 json = new JSONObject(m.body());

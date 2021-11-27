@@ -1,38 +1,25 @@
 package LocalApplication;
 
-
-import java.nio.file.Paths;
-
-
 import Tools.MessageProtocol;
 import Tools.S3Helper;
 import Tools.SQSHelper;
 import org.json.JSONObject;
-import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.awssdk.services.sqs.model.*;
 import java.util.List;
-import software.amazon.awssdk.core.sync.RequestBody;
-import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.ec2.Ec2Client;
-import software.amazon.awssdk.services.ec2.model.*;
-
-import software.amazon.awssdk.services.s3.model.PutObjectRequest;
-import software.amazon.awssdk.services.s3.S3Client;
 
 
 public class LocalApplication {
     public static void main(String[] args) {
-//        final String uniqueLocalId = "id1";
-//        final String uniquePathLocalApp =  awsBundle.inputFolder+"/"+ uniqueLocalId;
+
+        String url="https://sqs.us-east-1.amazonaws.com/537488554861/LocalApp-Manager";
+        String bucket = "dsps12bucket";
+        String key = "pdf_src";
         String inputFileName="";
         String outputFileName="";
         int numOfPDFPerWorker = 1;
         boolean shouldTerminate = false;
         boolean gotResult = false;
-        String url="https://sqs.us-east-1.amazonaws.com/537488554861/LocalApp-Manager";
-        String bucket = "dsps12bucket";
-        String key = "pdf_src";
-//        boolean gotResult = false;
+
         if(args.length == 3 || args.length == 4) {
             inputFileName=args[0];
             outputFileName=args[1];
@@ -50,7 +37,9 @@ public class LocalApplication {
             System.err.println("Invalid number of command line arguments");
             System.exit(1);
         }
+
         System.out.println("Local Application is running...");
+
         //Check if manager exists and if not start him
         MangerHelper mangerHelper = new MangerHelper();
         mangerHelper.startManager();
@@ -72,10 +61,10 @@ public class LocalApplication {
         {
             List<Message> messages = sqsHelper.getMessages(url);
             for(Message msg : messages){
-                MessageProtocol recievedMsg = new MessageProtocol(new JSONObject(msg.body()));
-                if(recievedMsg.getTask().equals("Finished")){
+                MessageProtocol receivedMsg = new MessageProtocol(new JSONObject(msg.body()));
+                if(receivedMsg.getTask().equals("Finished")){
                     System.out.println("The manager finished his work");
-                    s3Helper.downloadFile(outputFileName, recievedMsg.getBucketName() , recievedMsg.getKey()); //TODO downloadFile
+                    s3Helper.downloadFile(outputFileName, receivedMsg.getBucketName() , receivedMsg.getKey()); //TODO downloadFile
                     if(shouldTerminate){
                         System.out.println("Should terminate");
                         MessageProtocol terminateMsg = new MessageProtocol("Terminate", "","",0);
@@ -85,16 +74,5 @@ public class LocalApplication {
                 }
             }
         }
-//        startManager(mangerHelper);
-//        ec2.close();
-
-
-
-
-
-
     }
-
-
-
 }
