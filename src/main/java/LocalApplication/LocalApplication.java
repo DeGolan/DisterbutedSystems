@@ -4,6 +4,9 @@ package LocalApplication;
 import java.nio.file.Paths;
 
 
+import Tools.MessageProtocol;
+import Tools.S3Helper;
+import Tools.SQSHelper;
 import org.json.JSONObject;
 import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.awssdk.services.sqs.model.*;
@@ -19,95 +22,79 @@ import software.amazon.awssdk.services.s3.S3Client;
 
 public class LocalApplication {
     public static void main(String[] args) {
-        System.out.println("Local Application is running...");
-
-        Region region = Region.US_EAST_1;
-        S3Client s3 = S3Client.builder().region(region).build();
+//        final String uniqueLocalId = "id1";
+//        final String uniquePathLocalApp =  awsBundle.inputFolder+"/"+ uniqueLocalId;
+        String inputFileName="";
+        String outputFileName="";
+        int numOfPDFPerWorker = 1;
+        boolean shouldTerminate = false;
+        boolean gotResult = false;
+        String url="https://sqs.us-east-1.amazonaws.com/537488554861/LocalApp-Manager";
         String bucket = "dsps12bucket";
         String key = "pdf_src";
-        int numOfMsgsPerWorker=4;
-        uploadPDFListToS3(s3, bucket, key ,region);
-        SqsClient sqsClient = SqsClient.builder()
-                .region(region)
-                .build();
-//        Ec2Client ec2 = Ec2Client.builder()
-//                .region(region)
-//                .build();
-//        startManager(ec2);
+//        boolean gotResult = false;
+        if(args.length == 3 || args.length == 4) {
+            inputFileName=args[0];
+            outputFileName=args[1];
+            numOfPDFPerWorker=Integer.parseInt(args[2]);
+            if (args.length == 4) {
+                if (args[3].equals("terminate"))
+                    shouldTerminate = true;
+                else {
+                    System.err.println("Invalid command line argument: " + args[4]);
+                    System.exit(1);
+                }
+            }
+        }
+        else {
+            System.err.println("Invalid number of command line arguments");
+            System.exit(1);
+        }
+        System.out.println("Local Application is running...");
+        //Check if manager exists and if not start him
+        MangerHelper mangerHelper = new MangerHelper();
+        mangerHelper.startManager();
+
+        //upload pdf source file to S3
+        System.out.println("upload pdf source file to S3");
+        S3Helper s3Helper=new S3Helper();
+        s3Helper.uploadFileToS3(inputFileName, bucket, key);
+
+        //Send Message to sqs
+        System.out.println("Send file to sqs");
+        SQSHelper sqsHelper = new SQSHelper(url);
+        MessageProtocol uploadSrc = new MessageProtocol("Download PDF", bucket, key, numOfPDFPerWorker);
+        sqsHelper.sendMessageToSQS(uploadSrc);
+
+        //Check SQS queue for a finish message
+        System.out.println("Check SQS queue for a finish message");
+        while(!gotResult)
+        {
+            List<Message> messages = sqsHelper.getMessages(url);
+            for(Message msg : messages){
+                MessageProtocol recievedMsg = new MessageProtocol(new JSONObject(msg.body()));
+                if(recievedMsg.getTask().equals("Finished")){
+                    System.out.println("The manager finished his work");
+                    s3Helper.downloadFile(outputFileName, recievedMsg.getBucketName() , recievedMsg.getKey()); //TODO downloadFile
+                    if(shouldTerminate){
+                        System.out.println("Should terminate");
+                        MessageProtocol terminateMsg = new MessageProtocol("Terminate", "","",0);
+                        sqsHelper.sendMessageToSQS(terminateMsg);
+                    }
+                    gotResult = true;
+                }
+            }
+        }
+//        startManager(mangerHelper);
 //        ec2.close();
 
 
-        JSONObject json=new JSONObject();
-        json.put("task","download pdf");
-        json.put("bucketName",bucket);
-        json.put("key",key);
-        json.put("number",numOfMsgsPerWorker);
-        sendMessageToSQS(sqsClient,json.toString());
 
-        sqsClient.close();
-    }
 
-    //check if the instance tag is "Manager"
-    public static void startManager(Ec2Client ec2) {
-        try {
-            String nextToken = null;
-            do {
-                DescribeInstancesRequest request = DescribeInstancesRequest.builder().build();
-                DescribeInstancesResponse response = ec2.describeInstances(request);
 
-                for (Reservation reservation : response.reservations()) {
-                    for (Instance instance : reservation.instances()) {
-                       List <Tag> tags=instance.tags();
-                       if(tags.size()>0){
-                           if(tags.get(0).key().equals("Manager")){
-                              if(!instance.state().name().toString().equals("running")){
-                                  String instanceId=instance.instanceId();
-                                  StartInstancesRequest request2 = StartInstancesRequest.builder()
-                                        .instanceIds(instanceId)
-                                        .build();
-                                  ec2.startInstances(request2);
-                                  System.out.printf("Successfully started Manager");
-                              }else {
-                                  System.out.printf("Manager is already running");
-                              }
-                              return;//only have one manager, can stop iterate
-                           }
-                       }
-                    }
-                }
-                nextToken = response.nextToken();
-            } while (nextToken != null);
-
-        } catch (Ec2Exception e) {
-            System.err.println(e.awsErrorDetails().errorMessage());
-            System.exit(1);
-        }
 
     }
 
-    //uploading the pdf_src to the s3
-    public static void uploadPDFListToS3(S3Client s3, String bucket, String key, Region region){
-        System.out.println("Uploading pdf source file to S3...");
-        s3.putObject(PutObjectRequest.builder().bucket(bucket).key(key).build(),
-                RequestBody.fromFile(Paths.get("/home/vagrant/DistributedSystems/src/main/resources/input-sample-1.txt")));
-        System.out.println("Upload complete");
-        System.out.printf("%n");
-        System.out.println("Closing the connection to {S3}");
-        s3.close();
-        System.out.println("Connection closed");
-    }
 
-    public static void sendMessageToSQS (SqsClient sqsClient, String msg){
-        try {
-            SendMessageRequest send_msg_request = SendMessageRequest.builder()
-                    .queueUrl("https://sqs.us-east-1.amazonaws.com/537488554861/LocalApp-Manager")
-                    .messageBody(msg)
-                  //  .delaySeconds(5)
-                    .build();
-            sqsClient.sendMessage(send_msg_request);
-        } catch (QueueNameExistsException e) {
-            throw e;
-        }
 
-    }
 }
