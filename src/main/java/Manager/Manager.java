@@ -1,5 +1,7 @@
 package Manager;
 
+import Tools.MessageProtocol;
+import Tools.SQSHelper;
 import com.google.gson.Gson;
 import org.json.JSONObject;
 import software.amazon.awssdk.core.ResponseBytes;
@@ -21,50 +23,40 @@ import java.io.*;
 import java.nio.file.Paths;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 
 public class Manager {
     public static void main(String[] args) throws IOException {
 
+        boolean isFinished = false;
+        AtomicBoolean terminateAll=new AtomicBoolean(false);
+        WorkHelper workHelper = new WorkHelper(terminateAll);
         System.out.println("Manager is starting...");
 
+        SQSHelper localManager = new SQSHelper("https://sqs.us-east-1.amazonaws.com/537488554861/LocalApp-Manager");//TODO enter url
 
-        Region region = Region.US_EAST_1;
-        S3Client s3 = S3Client.builder().region(region).build();
-        SqsClient sqsClient = SqsClient.builder()
-                .region(region)
-                .build();
-        List<Message> messages =receiveMessages(sqsClient,"https://sqs.us-east-1.amazonaws.com/537488554861/LocalApp-Manager");
-        JSONObject json = null;
 
-        if (messages.size()>0){
-            for (Message m: messages){
-                json = new JSONObject(m.body());
-                System.out.println(json.get("task"));
-                DeleteMessageRequest deleteRequest = DeleteMessageRequest.builder()
-                        .queueUrl("https://sqs.us-east-1.amazonaws.com/537488554861/LocalApp-Manager")
-                        .receiptHandle(m.receiptHandle())
-                        .build();
-                sqsClient.deleteMessage(deleteRequest);
+        while (!isFinished) {
+            List<Message> msgs = localManager.getMessages();
+            for (Message msg : msgs) {
+                MessageProtocol receivedMsg = new MessageProtocol(new JSONObject(msg.body()));
+                String task = receivedMsg.getTask();
+                if (task.equals("Terminate")) {
+                    //TODO terminate all
+
+                    terminateAll.set(true);
+                    workHelper.terminate();
+                    isFinished = true;
+                } else if (task.equals("Download PDF")) {
+                    workHelper.distributeWork(receivedMsg);
+                }
+                localManager.deleteMessage(msg);
             }
         }
-        if(json!=null && ((String)json.get("task")).equals("download pdf")){
-            String bucket= (String) json.get("bucketName");
-            String key= (String) json.get("key");
-            //int number=(int)json.get("number");
-            downloadPDFListFromS3(s3,bucket,key,region);
-
-        }
-
-        //create one worker for now
-        Ec2Client ec2 = Ec2Client.builder()
-                .region(region)
-                .build();
-        System.out.println("Creating 1 worker for now");
-      String workerID=createWorker(ec2,"ami-01cc34ab2709337aa");
-
-
     }
+}
+/*
 
     public static List<Message> receiveMessages(SqsClient sqsClient, String queueUrl) {
 
@@ -144,43 +136,7 @@ public class Manager {
     }
 
     //need to think about security, need to add IAM Role
-    public static String createWorker(Ec2Client ec2,String amiId){
-        RunInstancesRequest runRequest = RunInstancesRequest.builder()
-                .imageId(amiId)
-                .instanceType(InstanceType.T2_MICRO)
-                .maxCount(1)
-                .minCount(1)
-                .build();
 
-        RunInstancesResponse response = ec2.runInstances(runRequest);
-        String instanceId = response.instances().get(0).instanceId();
-
-        Tag tag = Tag.builder()
-                .key("Worker")
-                .value("")
-                .build();
-
-        CreateTagsRequest tagRequest = CreateTagsRequest.builder()
-                .resources(instanceId)
-                .tags(tag)
-                .build();
-
-        try {
-            ec2.createTags(tagRequest);
-            System.out.printf(
-                    "Successfully started EC2 Instance %s based on AMI %s",
-                    instanceId, amiId);
-
-            return instanceId;
-
-        } catch (Ec2Exception e) {
-            System.err.println(e.awsErrorDetails().errorMessage());
-            System.exit(1);
-        }
-
-        return "";
-
-    }
 
     public static void startWorkers(Ec2Client ec2,int numToStart) {
         if(numToStart>10){
@@ -225,4 +181,5 @@ public class Manager {
 
     }
 }
+*/
 

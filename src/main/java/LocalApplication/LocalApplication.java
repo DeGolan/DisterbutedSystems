@@ -28,7 +28,7 @@ public class LocalApplication {
                 if (args[3].equals("terminate"))
                     shouldTerminate = true;
                 else {
-                    System.err.println("Invalid command line argument: " + args[4]);
+                    System.err.println("Invalid command line argument: " + args[3]);
                     System.exit(1);
                 }
             }
@@ -52,14 +52,14 @@ public class LocalApplication {
         //Send Message to sqs
         System.out.println("Send file to sqs");
         SQSHelper sqsHelper = new SQSHelper(url);
-        MessageProtocol uploadSrc = new MessageProtocol("Download PDF", bucket, key, numOfPDFPerWorker);
+        MessageProtocol uploadSrc = new MessageProtocol("Download PDF", bucket, key, numOfPDFPerWorker,"","");
         sqsHelper.sendMessageToSQS(uploadSrc);
 
         //Check SQS queue for a finish message
         System.out.println("Check SQS queue for a finish message");
         while(!gotResult)
         {
-            List<Message> messages = sqsHelper.getMessages(url);
+            List<Message> messages = sqsHelper.getMessages();
             for(Message msg : messages){
                 MessageProtocol receivedMsg = new MessageProtocol(new JSONObject(msg.body()));
                 if(receivedMsg.getTask().equals("Finished")){
@@ -67,7 +67,7 @@ public class LocalApplication {
                     s3Helper.downloadFile(outputFileName, receivedMsg.getBucketName() , receivedMsg.getKey()); //TODO downloadFile
                     if(shouldTerminate){
                         System.out.println("Should terminate");
-                        MessageProtocol terminateMsg = new MessageProtocol("Terminate", "","",0);
+                        MessageProtocol terminateMsg = new MessageProtocol("Terminate", "","",0,"","");
                         sqsHelper.sendMessageToSQS(terminateMsg);
                     }
                     gotResult = true;

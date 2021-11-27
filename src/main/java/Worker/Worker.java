@@ -56,8 +56,8 @@ public class Worker {
                 String path=convertPDF(url,task,sqsClient);
                 uploadPDFListToS3(s3,bucket,path);
                 JSONObject returnJson=new JSONObject();
-                returnJson.put("for","Manager");
-                returnJson.put("status","complete");
+
+                returnJson.put("task","complete");
                 returnJson.put("url",url);
                 returnJson.put("task",task);
                 returnJson.put("s3Key",path);

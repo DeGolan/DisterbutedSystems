@@ -15,6 +15,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.file.Paths;
+import java.util.LinkedList;
+import java.util.List;
 
 public class S3Helper {
     private S3Client s3;
@@ -32,6 +34,30 @@ public class S3Helper {
 
     public void downloadFile(String outputFileName, String bucket, String key){
        //TBD
+    }
+    public List<MessageProtocol> downloadPDFList(String key, String bucket) throws IOException {
+        List<MessageProtocol> msgList=new LinkedList<MessageProtocol>();
+        GetObjectRequest objectRequest = GetObjectRequest
+                .builder()
+                .key(key)
+                .bucket(bucket)
+                .build();
+
+        ResponseInputStream<GetObjectResponse> s3objectResponse=s3.getObject(objectRequest);
+        BufferedReader reader = new BufferedReader(new InputStreamReader(s3objectResponse));
+
+        String line;
+        while ((line = reader.readLine()) != null) {
+            JSONObject json=new JSONObject();
+            String task=line.substring(0,line.indexOf('\t'));
+            String url=line.substring(line.indexOf('\t')+1);
+            MessageProtocol msg=new MessageProtocol(task,bucket,key,0,url,"");
+            msgList.add(msg);
+        }
+        reader.close();
+        s3objectResponse.close();
+        return  msgList;
+
     }
     public void closeS3(){
         System.out.printf("%n");

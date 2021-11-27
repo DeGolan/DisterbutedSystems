@@ -2,10 +2,7 @@ package Tools;
 
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.sqs.SqsClient;
-import software.amazon.awssdk.services.sqs.model.Message;
-import software.amazon.awssdk.services.sqs.model.QueueNameExistsException;
-import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
-import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
+import software.amazon.awssdk.services.sqs.model.*;
 
 import java.util.List;
 
@@ -32,11 +29,19 @@ public class SQSHelper {
         }
     }
 
-    public List<Message> getMessages(String queueURL){
+    public List<Message> getMessages(){
         ReceiveMessageRequest receiveRequest = ReceiveMessageRequest.builder()
-                .queueUrl(queueURL)
+                .queueUrl(url)
                 .visibilityTimeout(60)
                 .build();
         return sqsClient.receiveMessage(receiveRequest).messages();
+    }
+
+    public  void deleteMessage(Message m){
+        DeleteMessageRequest deleteRequest = DeleteMessageRequest.builder()
+                .queueUrl(url)
+                .receiptHandle(m.receiptHandle())
+                .build();
+        sqsClient.deleteMessage(deleteRequest);
     }
 }
