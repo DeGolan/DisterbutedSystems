@@ -111,7 +111,7 @@ public class WorkHelper {
                 if(numOfWorkers.get()>12){
                     break;
                 }
-                instancesId.add(createWorker());
+                //instancesId.add(createWorker());//TODO delete the note
                 numOfWorkers.incrementAndGet();
             }
          }

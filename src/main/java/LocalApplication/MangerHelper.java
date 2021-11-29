@@ -3,7 +3,6 @@ package LocalApplication;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.ec2.Ec2Client;
 import software.amazon.awssdk.services.ec2.model.*;
-import software.amazon.awssdk.services.s3.S3Client;
 
 import java.util.Base64;
 import java.util.List;
@@ -12,14 +11,9 @@ public class MangerHelper {
     private Region region;
     private Ec2Client ec2;
     private String amiId="ami-00e95a9222311e8ed";
-    private String script="#!/bin/bash\n"+"set-x\n"+"echo hello world";
- /*   String script = "#!/bin/bash"+
-            "export AWS_ACCESS_KEY_ID=ASIAX2JGQPNWQ7XGT3Q6"+
-            "export AWS_SECRET_ACCESS_KEY=a+kXhchCNu86EiEqO873JkME/JivxHy451PgKqqn" +
-            "AWS_SESSION_TOKEN=FwoGZXIvYXdzEB8aDOyX2h9xgCSdAtP68SLFAZoLUgsrFVDqLFhLI+h5UGVkl8fa0qbSqnWgwaUuySXTafI409+TvcTzQAFUDMf6gfIW71xalbDfYB3SsCUXUI5RSW+7/hUCg9sZkH9YXaOfWnwSydZ5k+R+kwzxaQF8mAlHSbuOSeihxeJKrEiloY8BG3EZ0N5burS/XvbY/6oalxQCv9Qjo1iBb32bXWT35jABwL/avOCXZtrPbD12HW6DJwzYIJ9vrjO6ivslvINLa/5xvd+TxYbI4tjSbr7F2Ug0O1IDKK6zk40GMi0shilkeB4WtKS1LaBuqsN7z7cyv9dfBoiEWZdMiPcGkKDIGkGUBPj/SgiiV5E="+
-            "export AWS_DEFAULT_REGION=us-east-1"+
-            "aws s3 cp s3://<bucket_name>/<file_name>.jar <file_name>.jar"+
-            "java -jar <file_name>.jar arg1 arg2 arg3";*/
+    String script = "#!/bin/bash\n"+
+            "aws s3 cp s3://dsps12bucket/ManagerJar Assignment1.jar\n"+
+            "java -jar Assignment1.jar\n";
 
     public  MangerHelper () {
         region = software.amazon.awssdk.regions.Region.US_EAST_1;
@@ -72,10 +66,11 @@ public class MangerHelper {
     }
 
     private String createManager(){
+        IamInstanceProfileSpecification role = IamInstanceProfileSpecification.builder().name("LabInstanceProfile").build();
         RunInstancesRequest runRequest = RunInstancesRequest.builder()
                 .imageId(amiId)
                 .userData(Base64.getEncoder().encodeToString(script.getBytes())
-                )
+                ).iamInstanceProfile(role)
                 .instanceType(InstanceType.T2_MICRO)
                 .maxCount(1)
                 .minCount(1)

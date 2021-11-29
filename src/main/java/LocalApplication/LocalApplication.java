@@ -4,7 +4,8 @@ import Tools.MessageProtocol;
 import Tools.S3Helper;
 import Tools.SQSHelper;
 import org.json.JSONObject;
-import software.amazon.awssdk.services.sqs.model.*;
+import software.amazon.awssdk.services.sqs.model.Message;
+
 import java.util.List;
 
 
@@ -43,14 +44,14 @@ public class LocalApplication {
 
         //Check if manager exists and if not start him
         MangerHelper mangerHelper = new MangerHelper();
-        mangerHelper.startManager();
+        //mangerHelper.startManager();
 
         //upload files to S3
         S3Helper s3Helper=new S3Helper();
         System.out.println("upload pdf source file to S3");
         s3Helper.uploadFileToS3(inputFileName, bucket, key);
         System.out.println("upload manager jar file to S3");
-        s3Helper.uploadFileToS3(managerJarPath, bucket, "ManagerJar");
+        //s3Helper.uploadFileToS3(managerJarPath, bucket, "ManagerJar");//TODO upload if need only
 
         //Send Message to sqs
         System.out.println("Send file to sqs");

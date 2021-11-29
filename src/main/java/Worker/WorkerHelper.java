@@ -33,10 +33,14 @@ public class WorkerHelper {
     public String convertPDF(String fileURL, String task) {
         String returnPath="";
         try {
-
+            if(!fileURL.contains("https")){//handle the case of http
+                fileURL=fileURL.substring(0,fileURL.indexOf(':'))+'s'+fileURL.substring((fileURL.indexOf(':')));
+                System.out.println(fileURL);
+            }
             String fileName=fileURL.substring(fileURL.lastIndexOf('/')+1,fileURL.lastIndexOf('.'));
             FileUtils.copyURLToFile(new URL(fileURL), new File("./src/main/resources/pdf/"+fileName+".pdf"));
             PDDocument document = PDDocument.load(new File("./src/main/resources/pdf/"+fileName+".pdf"));
+
             switch (task){
                 case "ToImage":
                     returnPath=toImage(document,fileName);
@@ -50,9 +54,12 @@ public class WorkerHelper {
             }
             document.close();
         }catch (Exception error) {//need to handle exceptions
+            System.out.println("Sending error msg");
             MessageProtocol msg=new MessageProtocol(error.toString(),"","",0,"","error");
             workersManger.sendMessageToSQS(msg);
+
         }
+
         return returnPath;
     }
     private String toImage(PDDocument document,String filename) throws IOException {

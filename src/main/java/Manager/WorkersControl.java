@@ -37,14 +37,16 @@ public class WorkersControl implements Runnable{
             List<Message> receivedMessages=sqsHelper.getMessages();
             for(Message message :receivedMessages){
                 MessageProtocol msg=new MessageProtocol(new JSONObject(message.body()));
-                String status=msg.getStatus();
+                System.out.println("GOT MSG: TASK: "+msg.getTask()+" STATUS: "+msg.getStatus());
 
+                String status=msg.getStatus();
                 if(status.equals("complete")){
                     summaryFile.add(msg.getKey());
                     numOfResponses.incrementAndGet();
                 } else if (status.equals("error")) {
                     numOfResponses.incrementAndGet();
                 }
+                System.out.println("numOfTasks: "+numOfTasks.get()+" numOfResponses: "+numOfResponses.get());
                 if(numOfTasks.get()==numOfResponses.get()){
                     if(sendSummary.compareAndSet(true,false)){
                         WorkHelper.uploadSummary();
