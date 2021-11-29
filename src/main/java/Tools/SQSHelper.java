@@ -10,7 +10,7 @@ public class SQSHelper {
     private SqsClient sqsClient;
     String url;
     public SQSHelper(String url){
-        SqsClient sqsClient = SqsClient.builder()
+        sqsClient = SqsClient.builder()
                 .region(Region.US_EAST_1)
                 .build();
         this.url=url;

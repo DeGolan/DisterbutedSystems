@@ -3,21 +3,12 @@ package Manager;
 import Tools.MessageProtocol;
 import Tools.S3Helper;
 import Tools.SQSHelper;
-import org.json.JSONObject;
-import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.ec2.Ec2Client;
 import software.amazon.awssdk.services.ec2.model.*;
-import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.model.GetObjectRequest;
-import software.amazon.awssdk.services.s3.model.GetObjectResponse;
-import software.amazon.awssdk.services.s3.model.S3Exception;
-import software.amazon.awssdk.services.sqs.SqsClient;
 
-import java.io.BufferedReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -31,7 +22,7 @@ public class WorkHelper {
     private static SQSHelper localManagerSQS;
     private Thread receiveMsgs;
     private AtomicInteger numOfWorkers;
-    private String amiId="ami-01cc34ab2709337aa";
+    private String amiId="ami-00e95a9222311e8ed";
     private  AtomicBoolean terminateAll;
     private static CopyOnWriteArrayList<String> summaryFile;
     private List<String> instancesId;
@@ -45,20 +36,21 @@ public class WorkHelper {
                 .region(Region.US_EAST_1)
                 .build();
         this.bucket=bucket;
-        managerWorkersSQS=new SQSHelper("https://sqs.us-east-1.amazonaws.com/537488554861/LocalApp-Manager");//TODO check sqs url
-        workersMangerSQS=new SQSHelper("");//TODO enter sqs url
-        localManagerSQS=new  SQSHelper("");
+        managerWorkersSQS=new SQSHelper("https://sqs.us-east-1.amazonaws.com/537488554861/Manager-Workers");
+        workersMangerSQS=new SQSHelper("https://sqs.us-east-1.amazonaws.com/537488554861/Workers-Manager");
+        localManagerSQS=new  SQSHelper("https://sqs.us-east-1.amazonaws.com/537488554861/LocalApp-Manager");
         instancesId=new LinkedList<>();
 
         numOfWorkers=new AtomicInteger(0);
         numOfResponses=new AtomicInteger(0);
         numOfTasks=new AtomicInteger(-1);
-        sendSummary.set(true);
+        sendSummary= new AtomicBoolean(true);
         summaryFile=new CopyOnWriteArrayList<>();
 
         this.terminateAll=terminateAll;
 
         receiveMsgs=new Thread(new WorkersControl(workersMangerSQS,summaryFile,numOfResponses,numOfTasks,terminateAll,sendSummary));//can init more than 1 if needed
+        System.out.println("Starting the WorkersControl Thread...");
         receiveMsgs.start();
 
     }
@@ -114,8 +106,11 @@ public class WorkHelper {
          //TODO make sure there is no more then 19 workers!
          int numOfWantedWorkers = numOfMsgs/numOfPDFPerWorker;
          if(numOfWorkers.get()<numOfWantedWorkers){
-             int numOfWorkersToAdd=numOfWorkers.get()-numOfWantedWorkers;
+             int numOfWorkersToAdd=numOfWantedWorkers-numOfWorkers.get();
             for(int i=0;i<numOfWorkersToAdd;i++){
+                if(numOfWorkers.get()>12){
+                    break;
+                }
                 instancesId.add(createWorker());
                 numOfWorkers.incrementAndGet();
             }

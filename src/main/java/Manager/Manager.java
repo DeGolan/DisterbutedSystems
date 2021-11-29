@@ -1,42 +1,26 @@
 package Manager;
 
 import Tools.MessageProtocol;
-import Tools.S3Helper;
 import Tools.SQSHelper;
-import com.google.gson.Gson;
 import org.json.JSONObject;
-import software.amazon.awssdk.core.ResponseBytes;
-import software.amazon.awssdk.core.ResponseInputStream;
-import software.amazon.awssdk.core.sync.RequestBody;
-import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.ec2.Ec2Client;
-import software.amazon.awssdk.services.ec2.model.*;
-import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.model.GetObjectRequest;
-import software.amazon.awssdk.services.s3.model.GetObjectResponse;
-import software.amazon.awssdk.services.s3.model.PutObjectRequest;
-import software.amazon.awssdk.services.s3.model.S3Exception;
-import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.awssdk.services.sqs.model.*;
-import software.amazon.awssdk.thirdparty.jackson.core.JsonParser;
 
 import java.io.*;
-import java.nio.file.Paths;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 
 public class Manager {
     public static void main(String[] args) throws IOException {
+        System.out.println("Manager is starting...");
 
         boolean isFinished = false;
         AtomicBoolean terminateAll=new AtomicBoolean(false);
         WorkHelper workHelper = new WorkHelper(terminateAll,"dsps12bucket");//TODO create bucket
-        System.out.println("Manager is starting...");
+        SQSHelper localManager = new SQSHelper("https://sqs.us-east-1.amazonaws.com/537488554861/LocalApp-Manager");
 
-        SQSHelper localManager = new SQSHelper("https://sqs.us-east-1.amazonaws.com/537488554861/LocalApp-Manager");//TODO enter url
 
+        System.out.println("Starting work loop...");
         while (!isFinished) {
             List<Message> msgs = localManager.getMessages();
             for (Message msg : msgs) {
@@ -48,6 +32,7 @@ public class Manager {
                     workHelper.terminate();
                     isFinished = true;
                 } else if (task.equals("Download PDF")) {
+                    System.out.println("Received Download PDF msg: starting to distribute Work...");
                     workHelper.distributeWork(receivedMsg);
                 }
                 localManager.deleteMessage(msg);

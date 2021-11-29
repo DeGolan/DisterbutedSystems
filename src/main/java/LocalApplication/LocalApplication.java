@@ -14,14 +14,15 @@ public class LocalApplication {
         String url="https://sqs.us-east-1.amazonaws.com/537488554861/LocalApp-Manager";
         String bucket = "dsps12bucket";
         String key = "pdf_src";
-        String inputFileName="";
+        String inputFileName=""; //"/home/vagrant/DistributedSystems/src/main/resources/input-sample-1.txt"
         String outputFileName="";
+        String managerJarPath="/home/vagrant/DisterbutedSystems/out/artifacts/Assignment1_jar/Assignment1.jar";
         int numOfPDFPerWorker = 1;
         boolean shouldTerminate = false;
         boolean gotResult = false;
 
         if(args.length == 3 || args.length == 4) {
-            inputFileName=args[0];
+            inputFileName="./src/main/resources/input-sample-1.txt";//args[0];
             outputFileName=args[1];
             numOfPDFPerWorker=Integer.parseInt(args[2]);
             if (args.length == 4) {
@@ -44,10 +45,12 @@ public class LocalApplication {
         MangerHelper mangerHelper = new MangerHelper();
         mangerHelper.startManager();
 
-        //upload pdf source file to S3
-        System.out.println("upload pdf source file to S3");
+        //upload files to S3
         S3Helper s3Helper=new S3Helper();
+        System.out.println("upload pdf source file to S3");
         s3Helper.uploadFileToS3(inputFileName, bucket, key);
+        System.out.println("upload manager jar file to S3");
+        s3Helper.uploadFileToS3(managerJarPath, bucket, "ManagerJar");
 
         //Send Message to sqs
         System.out.println("Send file to sqs");
@@ -66,7 +69,7 @@ public class LocalApplication {
                     System.out.println("The manager finished his work");
                     s3Helper.downloadFile(outputFileName, receivedMsg.getBucketName() , receivedMsg.getKey()); //TODO downloadFile
                     if(shouldTerminate){
-                        System.out.println("Should terminate");
+                        System.out.println("Should terminate");//TODO also delete manager instance
                         MessageProtocol terminateMsg = new MessageProtocol("Terminate", bucket,"",0,"","");
                         sqsHelper.sendMessageToSQS(terminateMsg);
                     }

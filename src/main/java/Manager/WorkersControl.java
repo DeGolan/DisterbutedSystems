@@ -30,12 +30,12 @@ public class WorkersControl implements Runnable{
     }
 
     public void run() {
+        System.out.println("Workers Control has started running...");
         boolean isFinished=false;
 
         while (!isFinished){
             List<Message> receivedMessages=sqsHelper.getMessages();
             for(Message message :receivedMessages){
-
                 MessageProtocol msg=new MessageProtocol(new JSONObject(message.body()));
                 String status=msg.getStatus();
 
