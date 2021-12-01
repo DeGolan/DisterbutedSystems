@@ -14,15 +14,14 @@ import software.amazon.awssdk.services.sqs.model.Message;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.net.URL;
+import java.util.LinkedList;
 import java.util.List;
 
 public class Testing {
     public static void main(String[] args) {
-        System.out.println("Worker is starting...");
+        /*System.out.println("Worker is starting...");
         String[]urls={"https://www.jewishfederations.org/local_includes/downloads/39497.pdf",
             "http://www.st.tees.org.uk/assets/Downloads/Passover-service.pdf",
             "http://www.chabad.org/media/pdf/42/kUgi423322.pdf",
@@ -84,8 +83,8 @@ public class Testing {
                 String path=convertPDF2(url,task);
                 System.out.println("Path returned "+path);
             }
-
-
+*/
+        fileToHTML("./src/main/resources/text/summaryFile.txt","./src/main/resources/text/summaryFile.html");
 
     }
     public static String convertPDF2(String fileURL, String task) {
@@ -116,9 +115,37 @@ public class Testing {
         }
         return returnPath;
     }
-//    private void fileToHTML(String filename){
-//        Convert
-//    }
+    private static void fileToHTML(String filename, String output){
+        try {
+            BufferedReader br=new BufferedReader(new FileReader(filename));
+            String line;
+
+            FileOutputStream fs = new FileOutputStream(output);
+            OutputStreamWriter out = new OutputStreamWriter(fs);
+            out.write("<html>");
+            out.write("<head>");
+            out.write("<title>");
+            out.write("Summary File");
+            out.write("</title>");
+            out.write("</head>");
+            out.write("<body>");
+            while((line=br.readLine()) != null) {
+                out.write(line);
+                out.write("<br>");
+            }
+            out.write("</body>");
+            out.write("</html>");
+            out.close();
+            br.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException exception) {
+            exception.printStackTrace();
+        }
+    }
+
+
+
 
     private static String toImage2(PDDocument document,String filename) throws IOException {
         PDFRenderer pdfRenderer = new PDFRenderer(document);

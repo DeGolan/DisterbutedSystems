@@ -1,3 +1,0 @@
-./src/main/resources/png/KFA-Celebrates-Passover.png
-./src/main/resources/png/Passover_Guide_BOOKLET.png
-./src/main/resources/png/H4C_Passover_Seder.png

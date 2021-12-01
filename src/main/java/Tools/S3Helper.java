@@ -10,9 +10,7 @@ import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.nio.file.Paths;
 import java.util.LinkedList;
 import java.util.List;
@@ -25,14 +23,48 @@ public class S3Helper {
 
     //uploading the pdf_src to the s3
     public void uploadFileToS3(String filePath, String bucket, String key){
-        System.out.println("Uploading file path " + filePath + "to S3...");
+        System.out.println("Uploading file path " + filePath + " to S3...");
         s3.putObject(PutObjectRequest.builder().bucket(bucket).key(key).build(),
                 RequestBody.fromFile(Paths.get(filePath)));
         System.out.println("Upload complete");
     }
 
-    public void downloadFile(String outputFileName, String bucket, String key){
-       //TBD
+    public void downloadFile(String output,String bucket, String key){
+       try{
+       System.out.println("downloading the summary file from s3");
+        GetObjectRequest objectRequest = GetObjectRequest
+                .builder()
+                .key(key)
+                .bucket(bucket)
+                .build();
+
+        ResponseInputStream<GetObjectResponse> s3objectResponse=s3.getObject(objectRequest);
+        BufferedReader br = new BufferedReader(new InputStreamReader(s3objectResponse));
+
+        System.out.println("Writing the lines from the summary file to "+output+".html");
+        String line;
+        FileOutputStream fs = new FileOutputStream(output+".html");
+        OutputStreamWriter out = new OutputStreamWriter(fs);
+        out.write("<html>");
+        out.write("<head>");
+        out.write("<title>");
+        out.write("Summary File");
+        out.write("</title>");
+        out.write("</head>");
+        out.write("<body>");
+        while((line=br.readLine()) != null) {
+            out.write(line);
+            out.write("<br>");
+        }
+        out.write("</body>");
+        out.write("</html>");
+       s3objectResponse.close();
+        out.close();
+        br.close();
+    } catch (IOException e) {
+        e.printStackTrace();
+    }
+
     }
     public List<MessageProtocol> downloadPDFList(String key, String bucket) throws IOException {
         List<MessageProtocol> msgList=new LinkedList<MessageProtocol>();

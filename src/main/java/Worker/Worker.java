@@ -14,7 +14,7 @@ public class Worker {
     public static void main(String[] args) {
         System.out.println("Worker is starting...");
 
-        SQSHelper workerManager=new SQSHelper("https://sqs.us-east-1.amazonaws.com/537488554861/Workers-Manager");//TODO ENTER URL
+        SQSHelper workerManager=new SQSHelper("https://sqs.us-east-1.amazonaws.com/537488554861/Workers-Manager");
         SQSHelper managerWorker=new SQSHelper("https://sqs.us-east-1.amazonaws.com/537488554861/Manager-Workers");
         WorkerHelper workerHelper=new WorkerHelper(workerManager);
         int i=0;

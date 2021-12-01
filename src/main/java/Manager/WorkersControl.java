@@ -46,16 +46,17 @@ public class WorkersControl implements Runnable{
                 } else if (status.equals("error")) {
                     numOfResponses.incrementAndGet();
                 }
-                System.out.println("numOfTasks: "+numOfTasks.get()+" numOfResponses: "+numOfResponses.get());
-                if(numOfTasks.get()==numOfResponses.get()){
-                    if(sendSummary.compareAndSet(true,false)){
-                        WorkHelper.uploadSummary();
-                    }
-                    if(terminateAll.get()){
-                        isFinished=true;
-                    }
-                }
                 sqsHelper.deleteMessage(message);
+            }
+            System.out.println("numOfTasks: "+numOfTasks.get()+" numOfResponses: "+numOfResponses.get());
+            if(numOfTasks.get()==numOfResponses.get()){
+                if(sendSummary.compareAndSet(true,false)){
+                    WorkHelper.uploadSummary();
+                }
+                if(terminateAll.compareAndSet(true,true)){
+                    System.out.println("FINISHED LISTEN LOOP");
+                    isFinished=true;
+                }
             }
         }
     }

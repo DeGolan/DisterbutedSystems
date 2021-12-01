@@ -1,18 +1,13 @@
 package Worker;
 
 import Tools.MessageProtocol;
-import Tools.S3Helper;
 import Tools.SQSHelper;
 import org.apache.commons.io.FileUtils;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.rendering.PDFRenderer;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.apache.pdfbox.tools.PDFText2HTML;
-import org.json.JSONObject;
-import software.amazon.awssdk.core.sync.RequestBody;
-import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.model.PutObjectRequest;
-import software.amazon.awssdk.services.sqs.SqsClient;
+
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -20,7 +15,6 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URL;
-import java.nio.file.Paths;
 
 public class WorkerHelper {
     SQSHelper workersManger;
@@ -38,8 +32,8 @@ public class WorkerHelper {
                 System.out.println(fileURL);
             }
             String fileName=fileURL.substring(fileURL.lastIndexOf('/')+1,fileURL.lastIndexOf('.'));
-            FileUtils.copyURLToFile(new URL(fileURL), new File("./src/main/resources/pdf/"+fileName+".pdf"));
-            PDDocument document = PDDocument.load(new File("./src/main/resources/pdf/"+fileName+".pdf"));
+            FileUtils.copyURLToFile(new URL(fileURL), new File("/WorkerFiles/"+fileName+".pdf"),15000,15000);
+            PDDocument document = PDDocument.load(new File("/WorkerFiles/"+fileName+".pdf"));
 
             switch (task){
                 case "ToImage":
@@ -65,7 +59,7 @@ public class WorkerHelper {
     private String toImage(PDDocument document,String filename) throws IOException {
         PDFRenderer pdfRenderer = new PDFRenderer(document);
         BufferedImage bim = pdfRenderer.renderImageWithDPI(0,300);
-        String path="./src/main/resources/png/"+filename+".png";
+        String path="/WorkerFiles/"+filename+".png";
         ImageIO.write(bim,"PNG",new File(path));
         System.out.println("The first page of "+filename+" has converted to Image");
         return path;
@@ -75,7 +69,7 @@ public class WorkerHelper {
         stripper.setStartPage(0);
         stripper.setEndPage(0);
         String text=stripper.getText(document);
-        String path="./src/main/resources/text/"+filename+".txt";
+        String path="/WorkerFiles/"+filename+".txt";
         FileWriter file=new FileWriter(path);
         file.write(text);
         file.close();
@@ -87,7 +81,7 @@ public class WorkerHelper {
         stripper.setStartPage(0);
         stripper.setEndPage(0);
         String text=stripper.getText(document);
-        String path="./src/main/resources/HTML/"+filename+".html";
+        String path="/WorkerFiles/"+filename+".html";
         FileWriter file=new FileWriter(path);
         file.write(text);
         file.close();

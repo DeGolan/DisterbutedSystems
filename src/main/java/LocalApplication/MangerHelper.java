@@ -4,6 +4,7 @@ import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.ec2.Ec2Client;
 import software.amazon.awssdk.services.ec2.model.*;
 
+import java.io.*;
 import java.util.Base64;
 import java.util.List;
 
@@ -12,8 +13,9 @@ public class MangerHelper {
     private Ec2Client ec2;
     private String amiId="ami-00e95a9222311e8ed";
     String script = "#!/bin/bash\n"+
-            "aws s3 cp s3://dsps12bucket/ManagerJar Assignment1.jar\n"+
-            "java -jar Assignment1.jar\n";
+            "mkdir ManagerFiles\n" +
+            "aws s3 cp s3://dsps12bucket/ManagerJar ./ManagerFiles/Manager.jar\n"+
+            "java -jar /ManagerFiles/Manager.jar\n";
 
     public  MangerHelper () {
         region = software.amazon.awssdk.regions.Region.US_EAST_1;
@@ -105,4 +107,6 @@ public class MangerHelper {
         return  instanceId;
 
     }
+
+
 }

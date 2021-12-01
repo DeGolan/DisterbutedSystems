@@ -17,7 +17,8 @@ public class LocalApplication {
         String key = "pdf_src";
         String inputFileName="";
         String outputFileName="";
-        String managerJarPath="/home/vagrant/DisterbutedSystems/out/artifacts/Assignment1_jar/Assignment1.jar";
+        String managerJarPath="/home/vagrant/DisterbutedSystems/out/artifacts/Manager_jar/Manager.jar";
+        String workerJarPath="/home/vagrant/DisterbutedSystems/out/artifacts/Worker_jar/Worker.jar";
         int numOfPDFPerWorker = 1;
         boolean shouldTerminate = false;
         boolean gotResult = false;
@@ -44,20 +45,25 @@ public class LocalApplication {
 
         //Check if manager exists and if not start him
         MangerHelper mangerHelper = new MangerHelper();
-        String managerInstanceId = mangerHelper.startManager();
 
         //upload files to S3
         S3Helper s3Helper=new S3Helper();
-        System.out.println("upload pdf source file to S3");
-        s3Helper.uploadFileToS3(inputFileName, bucket, key);
+      /*  System.out.println("upload pdf source file to S3");
+        s3Helper.uploadFileToS3(inputFileName, bucket, key);*/
         System.out.println("upload manager jar file to S3");
-        //s3Helper.uploadFileToS3(managerJarPath, bucket, "ManagerJar");//TODO upload if need only
+        s3Helper.uploadFileToS3(managerJarPath, bucket, "ManagerJar");//TODO upload if need only
+        /*System.out.println("upload worker jar file to S3");
+        s3Helper.uploadFileToS3(workerJarPath, bucket, "WorkerJar");//TODO upload if need only*/
 
         //Send Message to sqs
         System.out.println("Send file to sqs");
         SQSHelper sqsHelper = new SQSHelper(url);
         MessageProtocol uploadSrc = new MessageProtocol("Download PDF", bucket, key, numOfPDFPerWorker,"","");
         sqsHelper.sendMessageToSQS(uploadSrc);
+
+        //start manager
+        System.out.println("Starting Manager");
+        String managerInstanceId = mangerHelper.startManager();
 
         //Check SQS queue for a finish message
         System.out.println("Check SQS queue for a finish message");
@@ -68,7 +74,7 @@ public class LocalApplication {
                 MessageProtocol receivedMsg = new MessageProtocol(new JSONObject(msg.body()));
                 if(receivedMsg.getTask().equals("finished")){
                     System.out.println("The manager finished his work");
-                    s3Helper.downloadFile(outputFileName, receivedMsg.getBucketName() , receivedMsg.getKey()); //TODO downloadFile
+                    s3Helper.downloadFile(outputFileName,receivedMsg.getBucketName() ,receivedMsg.getKey());
                     if(shouldTerminate){
                         System.out.println("Should terminate");//TODO also delete manager instance
                         MessageProtocol terminateMsg = new MessageProtocol("Terminate", bucket,"",0,"",managerInstanceId);

@@ -28,16 +28,18 @@ public class Manager {
                 MessageProtocol receivedMsg = new MessageProtocol(new JSONObject(msg.body()));
                 String task = receivedMsg.getTask();
                 if (task.equals("Terminate")) {
+                    System.out.println("Received Terminate msg");
                     //TODO terminate all
-                    terminateAll.set(true);
+                    terminateAll.compareAndSet(false,true);
                     workHelper.terminate();
                     isFinished = true;
                     instanceId = receivedMsg.getStatus();
+                    localManager.deleteMessage(msg);
                 } else if (task.equals("Download PDF")) {
                     System.out.println("Received Download PDF msg: starting to distribute Work...");
                     workHelper.distributeWork(receivedMsg);
+                    localManager.deleteMessage(msg);
                 }
-                localManager.deleteMessage(msg);
             }
         }
         workHelper.terminateInstance(instanceId);

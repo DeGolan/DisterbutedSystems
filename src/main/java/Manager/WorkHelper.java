@@ -32,8 +32,9 @@ public class WorkHelper {
     private  AtomicBoolean sendSummary;
     private static String bucket;
     String script = "#!/bin/bash\n"+
-            "aws s3 cp s3://dsps12bucket/ManagerJar Assignment1.jar\n"+
-            "java -jar Assignment1.jar\n";
+            "mkdir WorkerFiles\n"+
+            "aws s3 cp s3://dsps12bucket/WorkerJar ./WorkerFiles/Worker.jar\n"+
+            "java -jar /WorkerFiles/Worker.jar\n";
 
     public WorkHelper(AtomicBoolean terminateAll,String bucket){
         ec2Client= Ec2Client.builder()
@@ -60,6 +61,7 @@ public class WorkHelper {
     }
 
     public void terminate(){
+        System.out.println("In terminate");
         try {
             receiveMsgs.join();
         } catch (InterruptedException e) {
@@ -75,7 +77,7 @@ public class WorkHelper {
         S3Helper s3Helper=new S3Helper();
 
         try {
-            String path="./src/main/resources/text/summaryFile.txt";
+            String path="/ManagerFiles/summaryFile.txt";
             FileWriter file=new FileWriter(path);
             for(String str:summaryFile){
                 file.write(str+System.lineSeparator());
@@ -109,13 +111,16 @@ public class WorkHelper {
 
          //TODO make sure there is no more then 19 workers!
          int numOfWantedWorkers = numOfMsgs/numOfPDFPerWorker;
+         if(numOfWantedWorkers==0){
+             numOfWantedWorkers=1;
+         }
          if(numOfWorkers.get()<numOfWantedWorkers){
              int numOfWorkersToAdd=numOfWantedWorkers-numOfWorkers.get();
             for(int i=0;i<numOfWorkersToAdd;i++){
                 if(numOfWorkers.get()>12){
                     break;
                 }
-                //instancesId.add(createWorker());//TODO delete the note
+                instancesId.add(createWorker());
                 numOfWorkers.incrementAndGet();
             }
          }
