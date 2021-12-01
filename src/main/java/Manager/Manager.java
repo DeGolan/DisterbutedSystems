@@ -21,6 +21,7 @@ public class Manager {
 
 
         System.out.println("Starting work loop...");
+        String instanceId="";
         while (!isFinished) {
             List<Message> msgs = localManager.getMessages();
             for (Message msg : msgs) {
@@ -31,6 +32,7 @@ public class Manager {
                     terminateAll.set(true);
                     workHelper.terminate();
                     isFinished = true;
+                    instanceId = receivedMsg.getStatus();
                 } else if (task.equals("Download PDF")) {
                     System.out.println("Received Download PDF msg: starting to distribute Work...");
                     workHelper.distributeWork(receivedMsg);
@@ -38,5 +40,6 @@ public class Manager {
                 localManager.deleteMessage(msg);
             }
         }
+        workHelper.terminateInstance(instanceId);
     }
 }

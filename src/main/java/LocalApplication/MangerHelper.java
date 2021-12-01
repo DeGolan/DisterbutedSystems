@@ -23,6 +23,7 @@ public class MangerHelper {
     }
     //check if the instance tag is "Manager"
     public String startManager() {
+        String instanceId="";
         try {
             boolean startNewManager=true;
             String nextToken = null;
@@ -36,7 +37,7 @@ public class MangerHelper {
                         if(tags.size()>0){
                             if(tags.get(0).key().equals("Manager")){
                                 if(instance.state().name().toString().equals("stopped")){
-                                    String instanceId=instance.instanceId();
+                                    instanceId=instance.instanceId();
                                     StartInstancesRequest request2 = StartInstancesRequest.builder()
                                             .instanceIds(instanceId)
                                             .build();
@@ -45,6 +46,7 @@ public class MangerHelper {
                                     startNewManager=false;
                                 }else if(instance.state().name().toString().equals("running")){
                                     System.out.printf("Manager is already running");
+                                    instanceId=instance.instanceId();
                                     startNewManager=false;
                                 }
                             }
@@ -55,22 +57,22 @@ public class MangerHelper {
             } while (nextToken != null);
             if(startNewManager){
                 System.out.println("Creating a new Manager");
-                createManager();
+                instanceId=createManager();
             }
 
         } catch (Ec2Exception e) {
             System.err.println(e.awsErrorDetails().errorMessage());
             System.exit(1);
         }
-
+        return instanceId;
     }
 
     private String createManager(){
         IamInstanceProfileSpecification role = IamInstanceProfileSpecification.builder().name("LabInstanceProfile").build();
         RunInstancesRequest runRequest = RunInstancesRequest.builder()
                 .imageId(amiId)
-                .userData(Base64.getEncoder().encodeToString(script.getBytes())
-                ).iamInstanceProfile(role)
+                .userData(Base64.getEncoder().encodeToString(script.getBytes()))
+                .iamInstanceProfile(role)
                 .instanceType(InstanceType.T2_MICRO)
                 .maxCount(1)
                 .minCount(1)

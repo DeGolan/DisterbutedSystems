@@ -44,7 +44,7 @@ public class LocalApplication {
 
         //Check if manager exists and if not start him
         MangerHelper mangerHelper = new MangerHelper();
-        //mangerHelper.startManager();
+        String managerInstanceId = mangerHelper.startManager();
 
         //upload files to S3
         S3Helper s3Helper=new S3Helper();
@@ -71,7 +71,7 @@ public class LocalApplication {
                     s3Helper.downloadFile(outputFileName, receivedMsg.getBucketName() , receivedMsg.getKey()); //TODO downloadFile
                     if(shouldTerminate){
                         System.out.println("Should terminate");//TODO also delete manager instance
-                        MessageProtocol terminateMsg = new MessageProtocol("Terminate", bucket,"",0,"","");
+                        MessageProtocol terminateMsg = new MessageProtocol("Terminate", bucket,"",0,"",managerInstanceId);
                         sqsHelper.sendMessageToSQS(terminateMsg);
                     }
                     gotResult = true;

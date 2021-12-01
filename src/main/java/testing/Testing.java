@@ -116,6 +116,10 @@ public class Testing {
         }
         return returnPath;
     }
+//    private void fileToHTML(String filename){
+//        Convert
+//    }
+
     private static String toImage2(PDDocument document,String filename) throws IOException {
         PDFRenderer pdfRenderer = new PDFRenderer(document);
         BufferedImage bim = pdfRenderer.renderImageWithDPI(0,300);

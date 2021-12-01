@@ -9,6 +9,7 @@ import software.amazon.awssdk.services.ec2.model.*;
 
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Base64;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -30,6 +31,9 @@ public class WorkHelper {
     private  AtomicInteger numOfTasks;
     private  AtomicBoolean sendSummary;
     private static String bucket;
+    String script = "#!/bin/bash\n"+
+            "aws s3 cp s3://dsps12bucket/ManagerJar Assignment1.jar\n"+
+            "java -jar Assignment1.jar\n";
 
     public WorkHelper(AtomicBoolean terminateAll,String bucket){
         ec2Client= Ec2Client.builder()
@@ -63,7 +67,7 @@ public class WorkHelper {
         }
         //TODO delete Qs
         for(String id:instancesId){
-            terminateWorker(id);
+            terminateInstance(id);
         }
 
     }
@@ -84,7 +88,7 @@ public class WorkHelper {
             e.printStackTrace();
         }
     }
-    private void terminateWorker(String instanceId){
+    public void terminateInstance(String instanceId){
         try {
             TerminateInstancesRequest request = TerminateInstancesRequest.builder()
                     .instanceIds(instanceId).build();
@@ -121,8 +125,11 @@ public class WorkHelper {
      }
 
     private String createWorker(){
+        IamInstanceProfileSpecification role = IamInstanceProfileSpecification.builder().name("LabInstanceProfile").build();
         RunInstancesRequest runRequest = RunInstancesRequest.builder()
                 .imageId(amiId)
+                .userData(Base64.getEncoder().encodeToString(script.getBytes()))
+                .iamInstanceProfile(role)
                 .instanceType(InstanceType.T2_MICRO)
                 .maxCount(1)
                 .minCount(1)
