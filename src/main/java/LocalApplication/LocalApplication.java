@@ -15,7 +15,7 @@ public class LocalApplication {
         String url="https://sqs.us-east-1.amazonaws.com/537488554861/LocalApp-Manager";
         String bucket = "dsps12bucket";
         String key = "pdf_src";
-        String inputFileName=""; //"/home/vagrant/DistributedSystems/src/main/resources/input-sample-1.txt"
+        String inputFileName="";
         String outputFileName="";
         String managerJarPath="/home/vagrant/DisterbutedSystems/out/artifacts/Assignment1_jar/Assignment1.jar";
         int numOfPDFPerWorker = 1;
@@ -23,7 +23,7 @@ public class LocalApplication {
         boolean gotResult = false;
 
         if(args.length == 3 || args.length == 4) {
-            inputFileName="./src/main/resources/input-sample-1.txt";//args[0];
+            inputFileName=args[0];
             outputFileName=args[1];
             numOfPDFPerWorker=Integer.parseInt(args[2]);
             if (args.length == 4) {

@@ -22,7 +22,7 @@ public class MangerHelper {
                 .build();
     }
     //check if the instance tag is "Manager"
-    public void startManager() {
+    public String startManager() {
         try {
             boolean startNewManager=true;
             String nextToken = null;
@@ -54,7 +54,7 @@ public class MangerHelper {
                 nextToken = response.nextToken();
             } while (nextToken != null);
             if(startNewManager){
-                System.out.printf("Creating a new Manager");
+                System.out.println("Creating a new Manager");
                 createManager();
             }
 

@@ -29,17 +29,56 @@ public class Testing {
             "http://www.bethelnewton.org/images/Passover_Guide_BOOKLET.pdf",
             "http://scheinerman.net/judaism/pesach/haggadah.pdf",
             "http://www.crcweb.org/Passover/cRcPassoverGuide13_FINAL%20-%20WITHOUT%20ADS.pdf",
-            "http://www.kidswithfoodallergies.org/KFA-Celebrates-Passover.pdf"};
-        String [] tasks={"ToImage","ToHTML","ToText","ToImage","ToImage","ToImage","ToImage"};
-        boolean isFinished=false;
-
+            "http://www.kidswithfoodallergies.org/KFA-Celebrates-Passover.pdf",
+                "http://www.fairwaymarket.com/wp-content/uploads/2013/09/Kosher-Passover-Menu_FINAL.pdf",
+        "http://www.jewishcamp.org/sites/default/files/u8/Camp%20Passover%202013.pdf",
+                "http://www.bnaitikvah.net/prayer_ritual/documents/PassoverGuidelines.pdf",
+        "http://www.jsor.org/2014Passoverlist.pdf",
+                "http://www.rabbinicalassembly.org/sites/default/files/public/jewish-law/holidays/pesah/why-do-we-sing-the-song-of-songs-on-passover.pdf",
+                "http://www.betamshalom.org/sites/default/files/site_pdfs/a_passover_prayer.pdf",
+                "http://www.jewishmuseummilwaukee.org/docs/educators/SederActivities.pdf",
+        "http://www.hebrew4christians.com/Holidays/Spring_Holidays/Pesach/H4C_Passover_Seder.pdf",
+        "http://ajws.org/what_we_do/education/publications/holiday_resources/in_search_of_freedom_passover_seder.pdf",
+        "http://www.chosenpeople.com/main/pdf/HowToPrepareForAPassoverDinner.pdf",
+        "http://www.russoscateringboston.com/passover.pdf",
+        "http://www.tbshalom.com/newsletter.pdf",
+        "http://www.bethelsudbury.org/wp-content/uploads/2009/12/Kitniyot-Quinoa-and-Kashrut.pdf",
+        "http://tbel.jvillagenetwork.com/uploadedFiles/site/Sitewide/Right_Column/Rabbinical%20Assembly%20Pesah%20Guide%205774.pdf",
+        "http://www.federationcja.org/media/mediaContent/haggadah_e.pdf",
+        "http://www.maxandbennys.com/MENU/Passover%202013%20MENU.pdf",
+        "http://ramahdarom.org/wp-content/uploads/2013/03/passover-book-v10_website.pdf",
+        "http://elearning.huc.edu/jhvrc/docs/JQ%20Haggadah%20Final%20no%20pics%204%209%2008.pdf",
+        "http://rcdow.org.uk/att/files/faith/catechesis/eucharist/passoverguidelines.pdf",
+        "http://www.fbci.org/ministries/isra_docs/Passover.pdf",
+        "https://www.jewishlibraries.org/main/Portals/0/AJL_Assets/documents/bib_bank/PassoverResources.pdf",
+        "http://www.dgsdelicatessen.com/assets/DGS_Passover_Menu.pdf",
+        "http://www.thebagelemporium.com/images/BE-Holiday-Menu.pdf",
+        "http://www.sjanj.net/PassoverandEaster.pdf",
+        "http://yahweh.com/pdf/Booklet_Passover.pdf",
+        "http://www.theisraelofgod.com/Text%20Lessons/Is%20this%20not%20the%20Lord's%20Passover.pdf",
+        "http://www.ccss.org/Resources/Documents/Passover%20_%20Easter%20in%20Public%20Schools.pdf",
+        "http://www.adventurevalleydaycamp.com/Passover.pdf",
+        "http://foodmannosh.com/wp-content/uploads/2013/02/Matzolah-article-Aus-Jewish-Outlook2.pdf",
+        "http://www.crumbs.com/media/inline/HolidayMenu_Passover_10.pdf",
+        "http://www.cmu.edu/dining/pdf/passover-meal-plan-2014.pdf",
+        "http://www.thejewishcollection.com/passoverjokes.pdf",
+        "http://www.comingoutofegypt.com/Chronology-Passover-Week.pdf",
+        "http://www.elijahrocks.net/pdf/PassoverBlessing.pdf",
+        "http://www.biblicalfoundations.org/wp-content/uploads/2013/01/Supper_6-30.pdf",
+        "http://www.yeshuatyisrael.com/pdf/passover%20recipes.pdf",
+        "http://www.state.nj.us/oag/ca/kosher/Passover%20Disclosure.pdf",
+        "http://www.mallinckrodt.com/uploadedFiles/Content/Specialty_Pharmaceuticals/Active_Pharmaceutical_Ingredients/Products/Stearates-Phosphates/5712.pdf",
+        "http://www.templefjc.org/pubs/Passover.pdf",
+        "http://www.kashrut.com/Passover/pdf/OK_PassoverFoodGuide2014.pdf",
+        "http://www.zingermansdeli.com/wp-content/uploads/2013/03/Passover13.pdf",
+        "http://www.barrylou.com/books/TellingTheStoryInside.pdf",
+        "http://www.jfrankhenderson.com/pdf/jesusandseder.PDF",
+        "http://avirtualpassover.com/pdf/introduction.pdf"};
+        String [] tasks={"ToImage","ToHTML","ToText","ToImage","ToImage","ToImage","ToImage","ToImage","ToHTML","ToHTML","ToHTML","ToHTML","ToHTML"};
+        String task=tasks[1];
             for(int i=0;i<urls.length;i++)
             {
-                if(!urls[i].contains("https")){
-                    urls[i]=urls[i].substring(0,urls[i].indexOf(':'))+'s'+urls[i].substring((urls[i].indexOf(':')));
-                    System.out.println(urls[i]);
-                }
-                String task=tasks[i];
+//                String task=tasks[0];
                 String url=urls[i];
                 System.out.println("Try Convert PDF "+url);
                 String path=convertPDF2(url,task);
@@ -52,10 +91,10 @@ public class Testing {
     public static String convertPDF2(String fileURL, String task) {
         String returnPath="";
         try {
-
             String fileName=fileURL.substring(fileURL.lastIndexOf('/')+1,fileURL.lastIndexOf('.'));
-            FileUtils.copyURLToFile(new URL(fileURL), new File("./src/main/resources/pdf/"+fileName+".pdf"));
+            FileUtils.copyURLToFile(new URL(fileURL), new File("./src/main/resources/pdf/",fileName+".pdf"));
             PDDocument document = PDDocument.load(new File("./src/main/resources/pdf/"+fileName+".pdf"));
+            System.out.println("PDF downloaded");
 
             switch (task){
                 case "ToImage":
