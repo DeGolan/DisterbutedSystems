@@ -16,7 +16,7 @@ public class Manager {
 
         boolean isFinished = false;
         AtomicBoolean terminateAll=new AtomicBoolean(false);
-        WorkHelper workHelper = new WorkHelper(terminateAll,"dsps12bucket");//TODO create bucket
+        ManagerHelper workHelper = new ManagerHelper(terminateAll,"dsps12bucket");//TODO create bucket
         SQSHelper localManager = new SQSHelper("https://sqs.us-east-1.amazonaws.com/537488554861/LocalApp-Manager");
 
 
@@ -29,7 +29,6 @@ public class Manager {
                 String task = receivedMsg.getTask();
                 if (task.equals("Terminate")) {
                     System.out.println("Received Terminate msg");
-                    //TODO terminate all
                     terminateAll.compareAndSet(false,true);
                     workHelper.terminate();
                     isFinished = true;

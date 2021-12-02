@@ -8,7 +8,7 @@ import java.io.*;
 import java.util.Base64;
 import java.util.List;
 
-public class MangerHelper {
+public class LocalHelper {
     private Region region;
     private Ec2Client ec2;
     private String amiId="ami-00e95a9222311e8ed";
@@ -17,7 +17,7 @@ public class MangerHelper {
             "aws s3 cp s3://dsps12bucket/ManagerJar ./ManagerFiles/Manager.jar\n"+
             "java -jar /ManagerFiles/Manager.jar\n";
 
-    public  MangerHelper () {
+    public LocalHelper() {
         region = software.amazon.awssdk.regions.Region.US_EAST_1;
         ec2 = Ec2Client.builder()
                 .region(region)

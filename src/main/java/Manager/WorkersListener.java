@@ -6,23 +6,26 @@ import org.json.JSONObject;
 import software.amazon.awssdk.services.sqs.model.Message;
 
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class WorkersControl implements Runnable{
+public class WorkersListener implements Runnable{
     private SQSHelper sqsHelper;
-    CopyOnWriteArrayList<String> summaryFile;
+    private CopyOnWriteArrayList<String> summaryFile;
     private AtomicInteger numOfResponses;
     private AtomicInteger numOfTasks;
     private AtomicBoolean terminateAll;
     private AtomicBoolean sendSummary;
+    private ConcurrentHashMap<String,String> summaryFiles;
 
 
-    public  WorkersControl(SQSHelper sqsHelper,CopyOnWriteArrayList summaryFile,AtomicInteger numOfResponses,
-                           AtomicInteger numOfTasks,AtomicBoolean terminateAll,AtomicBoolean sendSummary){
+    public WorkersListener(SQSHelper sqsHelper, CopyOnWriteArrayList summaryFile, ConcurrentHashMap summaryFiles, AtomicInteger numOfResponses,
+                           AtomicInteger numOfTasks, AtomicBoolean terminateAll, AtomicBoolean sendSummary){
         this.sqsHelper=sqsHelper;
         this.summaryFile=summaryFile;
+        this.summaryFiles=summaryFiles;
         this.numOfResponses=numOfResponses;
         this.numOfTasks=numOfTasks;
         this.terminateAll=terminateAll;
@@ -51,7 +54,7 @@ public class WorkersControl implements Runnable{
             System.out.println("numOfTasks: "+numOfTasks.get()+" numOfResponses: "+numOfResponses.get());
             if(numOfTasks.get()==numOfResponses.get()){
                 if(sendSummary.compareAndSet(true,false)){
-                    WorkHelper.uploadSummary();
+                    ManagerHelper.uploadSummary();
                 }
                 if(terminateAll.compareAndSet(true,true)){
                     System.out.println("FINISHED LISTEN LOOP");

@@ -12,11 +12,13 @@ import java.io.IOException;
 import java.util.Base64;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class WorkHelper {
+public class ManagerHelper {
+
     private Ec2Client ec2Client;
     private SQSHelper managerWorkersSQS;
     private SQSHelper workersMangerSQS;
@@ -26,17 +28,19 @@ public class WorkHelper {
     private String amiId="ami-00e95a9222311e8ed";
     private  AtomicBoolean terminateAll;
     private static CopyOnWriteArrayList<String> summaryFile;
+    private static ConcurrentHashMap<String,String> summaryFiles;
     private List<String> instancesId;
     private AtomicInteger numOfResponses;
     private  AtomicInteger numOfTasks;
     private  AtomicBoolean sendSummary;
     private static String bucket;
+    private ConcurrentHashMap<String,AtomicInteger>
     String script = "#!/bin/bash\n"+
             "mkdir WorkerFiles\n"+
             "aws s3 cp s3://dsps12bucket/WorkerJar ./WorkerFiles/Worker.jar\n"+
             "java -jar /WorkerFiles/Worker.jar\n";
 
-    public WorkHelper(AtomicBoolean terminateAll,String bucket){
+    public ManagerHelper(AtomicBoolean terminateAll, String bucket){
         ec2Client= Ec2Client.builder()
                 .region(Region.US_EAST_1)
                 .build();
@@ -51,10 +55,11 @@ public class WorkHelper {
         numOfTasks=new AtomicInteger(-1);
         sendSummary= new AtomicBoolean(true);
         summaryFile=new CopyOnWriteArrayList<>();
+        summaryFiles=new ConcurrentHashMap<>();
 
         this.terminateAll=terminateAll;
 
-        receiveMsgs=new Thread(new WorkersControl(workersMangerSQS,summaryFile,numOfResponses,numOfTasks,terminateAll,sendSummary));//can init more than 1 if needed
+        receiveMsgs=new Thread(new WorkersListener(workersMangerSQS,summaryFile,summaryFiles,numOfResponses,numOfTasks,terminateAll,sendSummary));//can init more than 1 if needed
         System.out.println("Starting the WorkersControl Thread...");
         receiveMsgs.start();
 

@@ -21,7 +21,7 @@ public class SQSHelper {
             SendMessageRequest send_msg_request = SendMessageRequest.builder()
                     .queueUrl(url)
                     .messageBody(msg.getJson().toString())
-                    //  .delaySeconds(5)
+                    .delaySeconds(5)
                     .build();
             sqsClient.sendMessage(send_msg_request);
         } catch (QueueNameExistsException e) {
@@ -32,7 +32,7 @@ public class SQSHelper {
     public List<Message> getMessages(){
         ReceiveMessageRequest receiveRequest = ReceiveMessageRequest.builder()
                 .queueUrl(url)
-                .visibilityTimeout(60)
+                .visibilityTimeout(200)
                 .build();
         return sqsClient.receiveMessage(receiveRequest).messages();
     }

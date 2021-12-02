@@ -84,7 +84,9 @@ public class Testing {
                 System.out.println("Path returned "+path);
             }
 */
-        fileToHTML("./src/main/resources/text/summaryFile.txt","./src/main/resources/text/summaryFile.html");
+//        fileToHTML("./src/main/resources/text/summaryFile.txt","./src/main/resources/text/summaryFile.html");
+        String path = convertPDF2("http://yahweh.com/pdf/Booklet_Passover.pdf","ToText");
+        System.out.println("Path returned "+path);
 
     }
     public static String convertPDF2(String fileURL, String task) {
@@ -157,8 +159,8 @@ public class Testing {
     }
     private static String toText2(PDDocument document,String filename) throws IOException {
         PDFTextStripper stripper=new PDFTextStripper();
-        stripper.setStartPage(2);//need to change to page 0
-        stripper.setEndPage(2);//need to change to page 0
+        stripper.setStartPage(1);//need to change to page 0
+        stripper.setEndPage(1);//need to change to page 0
         String text=stripper.getText(document);
         String path="./src/main/resources/text/"+filename+".txt";
         FileWriter file=new FileWriter(path);
@@ -169,8 +171,8 @@ public class Testing {
     }
     private static String toHTML2(PDDocument document,String filename) throws IOException {
         PDFTextStripper stripper= new PDFText2HTML();
-        stripper.setStartPage(2);
-        stripper.setEndPage(2);
+        stripper.setStartPage(1);
+        stripper.setEndPage(1);
         String text=stripper.getText(document);
         String path="./src/main/resources/HTML/"+filename+".html";
         FileWriter file=new FileWriter(path);

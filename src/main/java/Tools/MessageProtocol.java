@@ -10,14 +10,16 @@ public class MessageProtocol {
     private int numOfPDFPerWorker;
     private String url;
     private String status;
+    private String localApp;
 
-    public MessageProtocol (String task, String bucketName, String key, int numOfPDFPerWorker,String url,String status){
+    public MessageProtocol (String task, String bucketName, String key, int numOfPDFPerWorker,String url,String status, String localApp){
         this.task=task;
         this.bucketName=bucketName;
         this.key=key;
         this.numOfPDFPerWorker=numOfPDFPerWorker;
         this.url=url;
         this.status=status;
+        this.localApp=localApp;
     }
     public MessageProtocol (JSONObject json){
         this.task = (String) json.get("task");
@@ -26,6 +28,7 @@ public class MessageProtocol {
         this.numOfPDFPerWorker = (int) json.get("numOfPDFPerWorker");
         this.url=(String) json.get("url");
         this.status=(String)  json.get("status");
+        this.localApp=(String) json.get("localApp");
     }
 
     public String getStatus(){
@@ -51,6 +54,10 @@ public class MessageProtocol {
         return numOfPDFPerWorker;
     }
 
+    public String getLocalApp() {
+        return localApp;
+    }
+
     public JSONObject getJson() {
         json.put("task",task);
         json.put("bucketName", bucketName);
@@ -58,6 +65,7 @@ public class MessageProtocol {
         json.put("numOfPDFPerWorker", numOfPDFPerWorker);
         json.put("url", url);
         json.put("status", status);
+        json.put("localApp",localApp);
         return json;
     }
 }

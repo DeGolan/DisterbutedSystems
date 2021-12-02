@@ -66,8 +66,8 @@ public class WorkerHelper {
     }
     private String toText(PDDocument document,String filename) throws IOException {
         PDFTextStripper stripper=new PDFTextStripper();
-        stripper.setStartPage(0);
-        stripper.setEndPage(0);
+        stripper.setStartPage(1);
+        stripper.setEndPage(1);
         String text=stripper.getText(document);
         String path="/WorkerFiles/"+filename+".txt";
         FileWriter file=new FileWriter(path);
@@ -78,8 +78,8 @@ public class WorkerHelper {
     }
     private String toHTML(PDDocument document,String filename) throws IOException {
         PDFTextStripper stripper= new PDFText2HTML();
-        stripper.setStartPage(0);
-        stripper.setEndPage(0);
+        stripper.setStartPage(1);
+        stripper.setEndPage(1);
         String text=stripper.getText(document);
         String path="/WorkerFiles/"+filename+".html";
         FileWriter file=new FileWriter(path);
