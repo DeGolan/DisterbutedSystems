@@ -18,8 +18,8 @@ public class LocalApplication {
         String key = "pdf_src"+localAppId;
         String inputFileName="";
         String outputFileName="";
-        String managerJarPath="/home/vagrant/IdeaProjects/DisterbutedSystems/out/artifacts/Manager_jar/Manager.jar";
-        String workerJarPath="/home/vagrant/IdeaProjects/DisterbutedSystems/out/artifacts/Worker_jar/Worker.jar";
+        String managerJarPath="/home/vagrant/DisterbutedSystems/out/artifacts/Manager_jar/Manager.jar";
+        String workerJarPath="/home/vagrant/DisterbutedSystems/out/artifacts/Worker_jar/Worker.jar";
         int numOfPDFPerWorker = 1;
         boolean shouldTerminate = false;
         boolean gotResult = false;
@@ -51,10 +51,10 @@ public class LocalApplication {
         S3Helper s3Helper=new S3Helper();
         System.out.println("upload pdf source file to S3");
         s3Helper.uploadFileToS3(inputFileName, bucket, key);
-        System.out.println("upload manager jar file to S3");
+     /*   System.out.println("upload manager jar file to S3");
         s3Helper.uploadFileToS3(managerJarPath, bucket, "ManagerJar");//TODO upload if need only
         System.out.println("upload worker jar file to S3");
-        s3Helper.uploadFileToS3(workerJarPath, bucket, "WorkerJar");//TODO upload if need only
+        s3Helper.uploadFileToS3(workerJarPath, bucket, "WorkerJar");//TODO upload if need only*/
 
         //Send Message to sqs
         System.out.println("Send file to sqs");
@@ -73,6 +73,7 @@ public class LocalApplication {
             List<Message> messages = sqsHelper.getMessages();
             for(Message msg : messages){
                 MessageProtocol receivedMsg = new MessageProtocol(new JSONObject(msg.body()));
+                System.out.println("LocalApp got msg with task: "+receivedMsg.getTask());
                 if(receivedMsg.getLocalApp().equals(localAppId)){
                     if(receivedMsg.getTask().equals("finished")){
                         System.out.println("The manager finished his work");
@@ -84,9 +85,21 @@ public class LocalApplication {
                         }
                         gotResult = true;
                         sqsHelper.deleteMessage(msg);
+                    }else{
+                        sqsHelper.releaseMessage(msg);
+                        System.out.println("LocalApp released msg: "+receivedMsg.getTask());
+                        try {
+                            System.out.println("Going to sleep");
+                            Thread.sleep(5000);
+                            System.out.println("Good morning");
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
                     }
                 }
             }
         }
+        sqsHelper.close();
+        s3Helper.closeS3();
     }
 }

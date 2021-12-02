@@ -111,7 +111,7 @@ public class Testing {
             document.close();
         }catch (Exception error) {//need to handle exceptions
             System.out.println("Sending error msg");
-            MessageProtocol msg=new MessageProtocol(error.toString(),"","",0,"","error");
+            //MessageProtocol msg=new MessageProtocol(error.toString(),"","",0,"","error");
 
 
         }

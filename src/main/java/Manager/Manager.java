@@ -15,8 +15,7 @@ public class Manager {
         System.out.println("Manager is starting...");
 
         boolean isFinished = false;
-        AtomicBoolean terminateAll=new AtomicBoolean(false);
-        ManagerHelper workHelper = new ManagerHelper(terminateAll,"dsps12bucket");//TODO create bucket
+        ManagerHelper workHelper = new ManagerHelper("dsps12bucket");//TODO create bucket
         SQSHelper localManager = new SQSHelper("https://sqs.us-east-1.amazonaws.com/537488554861/LocalApp-Manager");
 
 
@@ -27,20 +26,24 @@ public class Manager {
             for (Message msg : msgs) {
                 MessageProtocol receivedMsg = new MessageProtocol(new JSONObject(msg.body()));
                 String task = receivedMsg.getTask();
+                System.out.println("Manager got msg with task:"+task);
                 if (task.equals("Terminate")) {
-                    System.out.println("Received Terminate msg");
-                    terminateAll.compareAndSet(false,true);
+                    localManager.deleteMessage(msg);
+                    System.out.println("Manager received Terminate msg");
                     workHelper.terminate();
                     isFinished = true;
                     instanceId = receivedMsg.getStatus();
-                    localManager.deleteMessage(msg);
+                    System.out.println("Deleting Terminate msg");
+
                 } else if (task.equals("Download PDF")) {
-                    System.out.println("Received Download PDF msg: starting to distribute Work...");
+                    System.out.println("Received Download PDF msg \nstarting to distribute Work...");
                     workHelper.distributeWork(receivedMsg);
                     localManager.deleteMessage(msg);
                 }
             }
         }
+        System.out.println("Terminating my self...");
+        localManager.close();
         workHelper.terminateInstance(instanceId);
     }
 }

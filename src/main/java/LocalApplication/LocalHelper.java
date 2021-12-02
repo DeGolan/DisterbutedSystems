@@ -32,7 +32,6 @@ public class LocalHelper {
             do {
                 DescribeInstancesRequest request = DescribeInstancesRequest.builder().build();
                 DescribeInstancesResponse response = ec2.describeInstances(request);
-
                 for (Reservation reservation : response.reservations()) {
                     for (Instance instance : reservation.instances()) {
                         List<Tag> tags=instance.tags();
@@ -46,7 +45,8 @@ public class LocalHelper {
                                     ec2.startInstances(request2);
                                     System.out.printf("Successfully started Manager");
                                     startNewManager=false;
-                                }else if(instance.state().name().toString().equals("running")){
+                                }else if(instance.state().name().toString().equals("running")||
+                                        instance.state().name().toString().equals("pending")){
                                     System.out.printf("Manager is already running");
                                     instanceId=instance.instanceId();
                                     startNewManager=false;

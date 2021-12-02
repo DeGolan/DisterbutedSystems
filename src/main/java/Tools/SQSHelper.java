@@ -15,13 +15,19 @@ public class SQSHelper {
                 .build();
         this.url=url;
     }
-
+public void releaseMessage (Message m){
+        sqsClient.changeMessageVisibility(ChangeMessageVisibilityRequest.builder()
+                .queueUrl(url)
+                .receiptHandle(m.receiptHandle())
+                .visibilityTimeout(0)
+                .build());
+}
     public void sendMessageToSQS (MessageProtocol msg){
         try {
             SendMessageRequest send_msg_request = SendMessageRequest.builder()
                     .queueUrl(url)
                     .messageBody(msg.getJson().toString())
-                    .delaySeconds(5)
+                    //.delaySeconds(5)
                     .build();
             sqsClient.sendMessage(send_msg_request);
         } catch (QueueNameExistsException e) {
@@ -32,7 +38,7 @@ public class SQSHelper {
     public List<Message> getMessages(){
         ReceiveMessageRequest receiveRequest = ReceiveMessageRequest.builder()
                 .queueUrl(url)
-                .visibilityTimeout(200)
+                .visibilityTimeout(60)
                 .build();
         return sqsClient.receiveMessage(receiveRequest).messages();
     }
@@ -43,5 +49,8 @@ public class SQSHelper {
                 .receiptHandle(m.receiptHandle())
                 .build();
         sqsClient.deleteMessage(deleteRequest);
+    }
+    public void close(){
+        sqsClient.close();
     }
 }

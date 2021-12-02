@@ -66,7 +66,7 @@ public class S3Helper {
     }
 
     }
-    public List<MessageProtocol> downloadPDFList(String key, String bucket) throws IOException {
+    public List<MessageProtocol> downloadPDFList(String key, String bucket,String localAppId) throws IOException {
         List<MessageProtocol> msgList=new LinkedList<MessageProtocol>();
         GetObjectRequest objectRequest = GetObjectRequest
                 .builder()
@@ -82,7 +82,7 @@ public class S3Helper {
             JSONObject json=new JSONObject();
             String task=line.substring(0,line.indexOf('\t'));
             String url=line.substring(line.indexOf('\t')+1);
-            MessageProtocol msg=new MessageProtocol(task,bucket,key,0,url,"");
+            MessageProtocol msg=new MessageProtocol(task,bucket,key,0,url,"",localAppId);
             msgList.add(msg);
         }
         reader.close();
@@ -96,6 +96,7 @@ public class S3Helper {
         s3.close();
         System.out.println("Connection closed");
     }
+
 }
 
 //"/home/vagrant/DistributedSystems/src/main/resources/input-sample-1.txt"
