@@ -12,21 +12,22 @@ import java.io.IOException;
 import java.util.Base64;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class ManagerHelper {
 
-    private Ec2Client ec2Client;
-    private SQSHelper managerWorkersSQS;
-    private SQSHelper workersMangerSQS;
+    private final Ec2Client ec2Client;
+    private final SQSHelper managerWorkersSQS;
+    private final SQSHelper workersMangerSQS;
     private static SQSHelper localManagerSQS;
-    private List<Thread> workerListeners;
-    private AtomicInteger numOfWorkers;
-    private String amiId="ami-00e95a9222311e8ed";
-    private List<String> instancesId;
+    private final List<Thread> workerListeners;
+    private final AtomicInteger numOfWorkers;
+    private final List<String> instancesId;
     private static String bucket;
-    String script = "#!/bin/bash\n"+
+    private final int NUM_OF_THREADS=10;
+    private ExecutorService executorService;
+    private final String script = "#!/bin/bash\n"+
             "mkdir WorkerFiles\n"+
             "aws s3 cp s3://dsps12bucket/WorkerJar ./WorkerFiles/Worker.jar\n"+
             "java -jar /WorkerFiles/Worker.jar\n";
@@ -42,27 +43,29 @@ public class ManagerHelper {
         instancesId=new LinkedList<>();
         numOfWorkers=new AtomicInteger(0);
         workerListeners=new LinkedList<>();
+        executorService= Executors.newFixedThreadPool(NUM_OF_THREADS);
 
     }
 
     public void startNewJob(int numOfTasks,String localAppId){
         System.out.println("Starting new job of "+localAppId+"...");
-        Thread thread=new Thread(new WorkersListener(workersMangerSQS,numOfTasks,localAppId));//can init more than 1 if needed
-        workerListeners.add(thread);
-        thread.start();
+        Runnable runnable=new WorkersListener(workersMangerSQS,numOfTasks,localAppId);
+        executorService.execute(runnable);
     }
     public void terminate(){
         System.out.println("In terminate");
-        int count=1;
-        try {
-            for(Thread thread : workerListeners){
-                System.out.println("Join thread number "+count++);
-                thread.join();
-            }
-            System.out.println("All threads are done");
-        } catch (InterruptedException e) {
+        System.out.println("executorService.shutdown()");
+
+        executorService.shutdown();
+       try{
+           executorService.shutdown();
+           while(!executorService.awaitTermination(30, TimeUnit.SECONDS)){}
+       }
+        catch (InterruptedException e) {
             e.printStackTrace();
         }
+        System.out.println("All threads are done");
+
         System.out.println("Starting terminate all instances");
         for(String id:instancesId){
             terminateInstance(id);
@@ -77,7 +80,7 @@ public class ManagerHelper {
     public static void uploadSummary(String localAppId,List<String> summaryFile){
         S3Helper s3Helper=new S3Helper();
         try {
-            String path="/ManagerFiles/"+localAppId+"/"+summaryFile+".txt";
+            String path="/ManagerFiles/summaryFile"+localAppId+".txt";
             FileWriter file=new FileWriter(path);
             for(String str:summaryFile){
                 file.write(str+System.lineSeparator());
@@ -138,6 +141,7 @@ public class ManagerHelper {
 
     private String createWorker(){
         IamInstanceProfileSpecification role = IamInstanceProfileSpecification.builder().name("LabInstanceProfile").build();
+        String amiId = "ami-00e95a9222311e8ed";
         RunInstancesRequest runRequest = RunInstancesRequest.builder()
                 .imageId(amiId)
                 .userData(Base64.getEncoder().encodeToString(script.getBytes()))

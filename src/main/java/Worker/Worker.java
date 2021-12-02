@@ -35,11 +35,12 @@ public class Worker {
                 System.out.println("Path returned "+path);
                 if(!path.equals("")){//if path="" so error occurred
                     S3Helper s3Helper=new S3Helper();
-                    s3Helper.uploadFileToS3(path,bucket,path);//key to the new object is the local path
-                    MessageProtocol completeMessage =new MessageProtocol(task,bucket,path,0,"","complete",localAppId);
+                    String resultURL=s3Helper.uploadFileToS3(path,bucket,path);//key to the new object is the local path
+                    MessageProtocol completeMessage =new MessageProtocol(task,"",url,0,resultURL,"complete",localAppId);
                     System.out.println("Send Complete msg for localAppId: "+localAppId);
                     workerManager.sendMessageToSQS(completeMessage);
                 }
+                System.out.println("Delete msg of: "+msg.getLocalApp());
                 managerWorker.deleteMessage(message);
             }
 

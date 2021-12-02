@@ -49,7 +49,7 @@ public class WorkerHelper {
             document.close();
         }catch (Exception error) {//need to handle exceptions
             System.out.println("Sending error msg");
-            MessageProtocol msg=new MessageProtocol(error.toString(),"","",0,"","error",localAppId);
+            MessageProtocol msg=new MessageProtocol(task,"",error.getMessage(),0,fileURL,"error",localAppId);
             workersManger.sendMessageToSQS(msg);
 
         }

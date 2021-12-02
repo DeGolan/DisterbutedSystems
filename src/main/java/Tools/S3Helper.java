@@ -5,12 +5,10 @@ import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.model.GetObjectRequest;
-import software.amazon.awssdk.services.s3.model.GetObjectResponse;
-import software.amazon.awssdk.services.s3.model.PutObjectRequest;
-
+import software.amazon.awssdk.services.s3.model.*;
 
 import java.io.*;
+import java.net.URL;
 import java.nio.file.Paths;
 import java.util.LinkedList;
 import java.util.List;
@@ -18,15 +16,27 @@ import java.util.List;
 public class S3Helper {
     private S3Client s3;
     public S3Helper(){
+
         s3 = S3Client.builder().region(Region.US_EAST_1).build();
+
     }
 
     //uploading the pdf_src to the s3
-    public void uploadFileToS3(String filePath, String bucket, String key){
+    public String uploadFileToS3(String filePath, String bucket, String key){
+
         System.out.println("Uploading file path " + filePath + " to S3...");
         s3.putObject(PutObjectRequest.builder().bucket(bucket).key(key).build(),
                 RequestBody.fromFile(Paths.get(filePath)));
         System.out.println("Upload complete");
+
+        System.out.println("Getting url");
+        GetUrlRequest request = GetUrlRequest.builder()
+                .bucket(bucket)
+                .key(key)
+                .build();
+        URL url = s3.utilities().getUrl(request);
+        System.out.println("url is "+url.toString());
+        return url.toString();
     }
 
     public void downloadFile(String output,String bucket, String key){

@@ -42,9 +42,16 @@ public class WorkersListener implements Runnable{
                     System.out.println("Thread: "+localAppId+" GOT MSG: TASK: "+msg.getTask()+" STATUS: "+msg.getStatus());
                     String status=msg.getStatus();
                     if(status.equals("complete")){
-                        summaryFile.add(msg.getKey());
+                        String task=msg.getTask();
+                        String outputURL= msg.getUrl();
+                        String oldURL=msg.getKey();
+                        summaryFile.add(task+"\t"+oldURL+"\t"+outputURL);
                         numOfResponses++;
                     } else if (status.equals("error")) {
+                        String task=msg.getTask();
+                        String error= msg.getKey();
+                        String oldURL=msg.getUrl();
+                        summaryFile.add(task+"\t"+oldURL+"\t"+error);
                         numOfResponses++;
                     }
                     sqsHelper.deleteMessage(message);

@@ -49,15 +49,15 @@ public class LocalApplication {
 
         //upload files to S3
         S3Helper s3Helper=new S3Helper();
-        System.out.println("upload pdf source file to S3");
-        s3Helper.uploadFileToS3(inputFileName, bucket, key);
-     /*   System.out.println("upload manager jar file to S3");
+      /*  System.out.println("upload pdf source file to S3");
+        s3Helper.uploadFileToS3(inputFileName, bucket, key);*/
+
+        System.out.println("upload manager jar file to S3");
         s3Helper.uploadFileToS3(managerJarPath, bucket, "ManagerJar");//TODO upload if need only
         System.out.println("upload worker jar file to S3");
-        s3Helper.uploadFileToS3(workerJarPath, bucket, "WorkerJar");//TODO upload if need only*/
-
+        s3Helper.uploadFileToS3(workerJarPath, bucket, "WorkerJar");//TODO upload if need only
         //Send Message to sqs
-        System.out.println("Send file to sqs");
+      /*  System.out.println("Send file to sqs");
         SQSHelper sqsHelper = new SQSHelper(url);
         MessageProtocol uploadSrc = new MessageProtocol("Download PDF", bucket, key, numOfPDFPerWorker,"","",localAppId);
         sqsHelper.sendMessageToSQS(uploadSrc);
@@ -100,6 +100,6 @@ public class LocalApplication {
             }
         }
         sqsHelper.close();
-        s3Helper.closeS3();
+        s3Helper.closeS3();*/
     }
 }

@@ -39,6 +39,8 @@ public class Manager {
                     System.out.println("Received Download PDF msg \nstarting to distribute Work...");
                     workHelper.distributeWork(receivedMsg);
                     localManager.deleteMessage(msg);
+                }else{
+                    localManager.releaseMessage(msg);
                 }
             }
         }
