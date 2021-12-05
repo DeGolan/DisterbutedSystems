@@ -70,7 +70,7 @@ public class ManagerHelper {
         //Terminate all the workers
         for(String id:instancesId){
             terminateInstance(id);
-            System.out.println("instance "+id+"has been terminated");
+//            System.out.println("instance "+id+"has been terminated");
         }
         System.out.println("All instances have been terminated");
         managerWorkersSQS.close();

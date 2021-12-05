@@ -14,7 +14,7 @@ public class Manager {
         System.out.println("Manager is starting...");
 
         boolean isFinished = false;
-        ManagerHelper workHelper = new ManagerHelper("dsps12bucket");//TODO create bucket
+        ManagerHelper workHelper = new ManagerHelper("dsps12bucket");
         SQSHelper localManager = new SQSHelper("https://sqs.us-east-1.amazonaws.com/537488554861/LocalApp-Manager");
 
 
