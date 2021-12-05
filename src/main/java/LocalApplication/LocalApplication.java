@@ -18,8 +18,6 @@ public class LocalApplication {
         String key = "pdf_src"+localAppId;
         String inputFileName="";
         String outputFileName="";
-        String managerJarPath="/home/vagrant/DisterbutedSystems/out/artifacts/Manager_jar/Manager.jar";
-        String workerJarPath="/home/vagrant/DisterbutedSystems/out/artifacts/Worker_jar/Worker.jar";
         int numOfPDFPerWorker = 1;
         boolean shouldTerminate = false;
         boolean gotResult = false;
@@ -49,15 +47,11 @@ public class LocalApplication {
 
         //upload files to S3
         S3Helper s3Helper=new S3Helper();
-      /*  System.out.println("upload pdf source file to S3");
-        s3Helper.uploadFileToS3(inputFileName, bucket, key);*/
+        System.out.println("upload pdf source file to S3");
+        s3Helper.uploadFileToS3(inputFileName, bucket, key);
 
-        System.out.println("upload manager jar file to S3");
-        s3Helper.uploadFileToS3(managerJarPath, bucket, "ManagerJar");//TODO upload if need only
-        System.out.println("upload worker jar file to S3");
-        s3Helper.uploadFileToS3(workerJarPath, bucket, "WorkerJar");//TODO upload if need only
         //Send Message to sqs
-      /*  System.out.println("Send file to sqs");
+        System.out.println("Send file to sqs");
         SQSHelper sqsHelper = new SQSHelper(url);
         MessageProtocol uploadSrc = new MessageProtocol("Download PDF", bucket, key, numOfPDFPerWorker,"","",localAppId);
         sqsHelper.sendMessageToSQS(uploadSrc);
@@ -67,31 +61,32 @@ public class LocalApplication {
         String managerInstanceId = mangerHelper.startManager();
 
         //Check SQS queue for a finish message
-        System.out.println("Check SQS queue for a finish message");
+        System.out.println("\nCheck SQS queue for a finish message");
         while(!gotResult)
         {
             List<Message> messages = sqsHelper.getMessages();
             for(Message msg : messages){
                 MessageProtocol receivedMsg = new MessageProtocol(new JSONObject(msg.body()));
-                System.out.println("LocalApp got msg with task: "+receivedMsg.getTask());
-                if(receivedMsg.getLocalApp().equals(localAppId)){
+//                System.out.println("LocalApp got msg with task: "+receivedMsg.getTask());
+                if(receivedMsg.getLocalApp().equals(localAppId)){ //Verify that this message belongs to this local app
                     if(receivedMsg.getTask().equals("finished")){
                         System.out.println("The manager finished his work");
                         s3Helper.downloadFile(outputFileName,receivedMsg.getBucketName() ,receivedMsg.getKey());
-                        if(shouldTerminate){ //TODO handle terminate
+                        if(shouldTerminate){
                             System.out.println("Should terminate");
                             MessageProtocol terminateMsg = new MessageProtocol("Terminate", bucket,"",0,"",managerInstanceId,localAppId);
                             sqsHelper.sendMessageToSQS(terminateMsg);
                         }
                         gotResult = true;
                         sqsHelper.deleteMessage(msg);
-                    }else{
+                    }else{ //Not a finished message so it's supposed to arrive to the manager, so we release it for him by changing the visibility time out to 0
                         sqsHelper.releaseMessage(msg);
-                        System.out.println("LocalApp released msg: "+receivedMsg.getTask());
+//                        System.out.println("LocalApp released msg: "+receivedMsg.getTask());
                         try {
-                            System.out.println("Going to sleep");
+//                            System.out.println("Going to sleep");
+                            //To keep the local apps synchronized
                             Thread.sleep(5000);
-                            System.out.println("Good morning");
+//                            System.out.println("Good morning");
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         }
@@ -100,6 +95,6 @@ public class LocalApplication {
             }
         }
         sqsHelper.close();
-        s3Helper.closeS3();*/
+        s3Helper.closeS3();
     }
 }

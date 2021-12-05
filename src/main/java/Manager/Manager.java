@@ -7,7 +7,6 @@ import software.amazon.awssdk.services.sqs.model.*;
 
 import java.io.*;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 
 public class Manager {
@@ -26,20 +25,20 @@ public class Manager {
             for (Message msg : msgs) {
                 MessageProtocol receivedMsg = new MessageProtocol(new JSONObject(msg.body()));
                 String task = receivedMsg.getTask();
-                System.out.println("Manager got msg with task:"+task);
+//                System.out.println("Manager got msg with task:"+task);
                 if (task.equals("Terminate")) {
                     localManager.deleteMessage(msg);
                     System.out.println("Manager received Terminate msg");
                     workHelper.terminate();
                     isFinished = true;
                     instanceId = receivedMsg.getStatus();
-                    System.out.println("Deleting Terminate msg");
+//                    System.out.println("Deleting Terminate msg");
 
                 } else if (task.equals("Download PDF")) {
                     System.out.println("Received Download PDF msg \nstarting to distribute Work...");
                     workHelper.distributeWork(receivedMsg);
                     localManager.deleteMessage(msg);
-                }else{
+                }else{ //A message that meant for one of the local apps, so we release it by changing the visibility time out to 0
                     localManager.releaseMessage(msg);
                 }
             }

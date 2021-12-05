@@ -7,7 +7,7 @@ import software.amazon.awssdk.services.sqs.model.*;
 import java.util.List;
 
 public class SQSHelper {
-    private SqsClient sqsClient;
+    private final SqsClient sqsClient;
     String url;
     public SQSHelper(String url){
         sqsClient = SqsClient.builder()
@@ -27,7 +27,7 @@ public void releaseMessage (Message m){
             SendMessageRequest send_msg_request = SendMessageRequest.builder()
                     .queueUrl(url)
                     .messageBody(msg.getJson().toString())
-                    //.delaySeconds(5)
+                    //.delaySeconds(5) //TODO needed or not needed?
                     .build();
             sqsClient.sendMessage(send_msg_request);
         } catch (QueueNameExistsException e) {

@@ -9,9 +9,8 @@ import java.util.Base64;
 import java.util.List;
 
 public class LocalHelper {
-    private Region region;
-    private Ec2Client ec2;
-    private String amiId="ami-00e95a9222311e8ed";
+    private final Region region;
+    private final Ec2Client ec2;
     String script = "#!/bin/bash\n"+
             "mkdir ManagerFiles\n" +
             "aws s3 cp s3://dsps12bucket/ManagerJar ./ManagerFiles/Manager.jar\n"+
@@ -28,7 +27,7 @@ public class LocalHelper {
         String instanceId="";
         try {
             boolean startNewManager=true;
-            String nextToken = null;
+            String nextToken;
             do {
                 DescribeInstancesRequest request = DescribeInstancesRequest.builder().build();
                 DescribeInstancesResponse response = ec2.describeInstances(request);
@@ -37,17 +36,18 @@ public class LocalHelper {
                         List<Tag> tags=instance.tags();
                         if(tags.size()>0){
                             if(tags.get(0).key().equals("Manager")){
+                                //Check the manager status
                                 if(instance.state().name().toString().equals("stopped")){
                                     instanceId=instance.instanceId();
                                     StartInstancesRequest request2 = StartInstancesRequest.builder()
                                             .instanceIds(instanceId)
                                             .build();
                                     ec2.startInstances(request2);
-                                    System.out.printf("Successfully started Manager");
+                                    System.out.println("Successfully started Manager");
                                     startNewManager=false;
                                 }else if(instance.state().name().toString().equals("running")||
                                         instance.state().name().toString().equals("pending")){
-                                    System.out.printf("Manager is already running");
+                                    System.out.println("Manager is already running");
                                     instanceId=instance.instanceId();
                                     startNewManager=false;
                                 }
@@ -70,6 +70,7 @@ public class LocalHelper {
     }
 
     private String createManager(){
+        String amiId="ami-00e95a9222311e8ed";
         IamInstanceProfileSpecification role = IamInstanceProfileSpecification.builder().name("LabInstanceProfile").build();
         RunInstancesRequest runRequest = RunInstancesRequest.builder()
                 .imageId(amiId)

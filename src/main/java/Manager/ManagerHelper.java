@@ -26,7 +26,7 @@ public class ManagerHelper {
     private final List<String> instancesId;
     private static String bucket;
     private final int NUM_OF_THREADS=10;
-    private ExecutorService executorService;
+    private final ExecutorService executorService;
     private final String script = "#!/bin/bash\n"+
             "mkdir WorkerFiles\n"+
             "aws s3 cp s3://dsps12bucket/WorkerJar ./WorkerFiles/Worker.jar\n"+
@@ -46,7 +46,7 @@ public class ManagerHelper {
         executorService= Executors.newFixedThreadPool(NUM_OF_THREADS);
 
     }
-
+    // For each local app we create a thread waits for workers messages and handle them
     public void startNewJob(int numOfTasks,String localAppId){
         System.out.println("Starting new job of "+localAppId+"...");
         Runnable runnable=new WorkersListener(workersMangerSQS,numOfTasks,localAppId);
@@ -54,12 +54,12 @@ public class ManagerHelper {
     }
     public void terminate(){
         System.out.println("In terminate");
-        System.out.println("executorService.shutdown()");
+//        System.out.println("executorService.shutdown()");
 
-        executorService.shutdown();
+        executorService.shutdown(); //TODO check if two times shutdown is needed
        try{
            executorService.shutdown();
-           while(!executorService.awaitTermination(30, TimeUnit.SECONDS)){}
+           while(!executorService.awaitTermination(30, TimeUnit.SECONDS)){} //Waits for all the threads to finish their jobs
        }
         catch (InterruptedException e) {
             e.printStackTrace();
@@ -67,6 +67,7 @@ public class ManagerHelper {
         System.out.println("All threads are done");
 
         System.out.println("Starting terminate all instances");
+        //Terminate all the workers
         for(String id:instancesId){
             terminateInstance(id);
             System.out.println("instance "+id+"has been terminated");
@@ -101,6 +102,7 @@ public class ManagerHelper {
             ec2Client.terminateInstances(request);
         }
         catch (Exception e){
+            e.printStackTrace();
         }
     }
     public void distributeWork(MessageProtocol receivedMessage) throws IOException {
@@ -114,17 +116,15 @@ public class ManagerHelper {
          List<MessageProtocol> msgs= s3Helper.downloadPDFList(key,bucket,localAppId);
          int numOfTasks=msgs.size();
 
-
-         //TODO make sure there is no more then 19 workers!
          int numOfWantedWorkers = numOfTasks/numOfPDFPerWorker;
-         if(numOfWantedWorkers==0){
+         if(numOfWantedWorkers==0){ //The computation of the wantedWorkers is rounded down so if it's 0 we convert it to 1
              numOfWantedWorkers=1;
          }
 
          if(numOfWorkers.get()<numOfWantedWorkers){
              int numOfWorkersToAdd=numOfWantedWorkers-numOfWorkers.get();
             for(int i=0;i<numOfWorkersToAdd;i++){
-                if(numOfWorkers.get()>12){
+                if(numOfWorkers.get()>12){ //To make sure that there are no more than 19 workers (12 to be sure)
                     break;
                 }
                 instancesId.add(createWorker());

@@ -36,6 +36,7 @@ public class Worker {
                 if(!path.equals("")){//if path="" so error occurred
                     S3Helper s3Helper=new S3Helper();
                     String resultURL=s3Helper.uploadFileToS3(path,bucket,path);//key to the new object is the local path
+                    resultURL=resultURL.replace("/WorkerFiles","//WorkerFiles");
                     MessageProtocol completeMessage =new MessageProtocol(task,"",url,0,resultURL,"complete",localAppId);
                     System.out.println("Send Complete msg for localAppId: "+localAppId);
                     workerManager.sendMessageToSQS(completeMessage);

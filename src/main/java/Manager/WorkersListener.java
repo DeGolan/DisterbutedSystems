@@ -7,17 +7,13 @@ import software.amazon.awssdk.services.sqs.model.Message;
 
 import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class WorkersListener implements Runnable{
-    private SQSHelper sqsHelper;
-    private List<String> summaryFile;
+    private final SQSHelper sqsHelper;
+    private final List<String> summaryFile;
     private int numOfResponses;
-    private int numOfTasks;
-    private String localAppId;
+    private final int numOfTasks;
+    private final String localAppId;
 
 
 
