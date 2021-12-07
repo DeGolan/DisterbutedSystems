@@ -12,7 +12,7 @@ import java.util.List;
 
 public class LocalApplication {
     public static void main(String[] args) {
-        String localAppId= String.valueOf((new Date()).getTime());
+        String localAppId= String.valueOf((new Date()).getTime()); //Creating a unique ID for every new local app
         String url="https://sqs.us-east-1.amazonaws.com/537488554861/LocalApp-Manager";
         String bucket = "dsps12bucket";
         String key = "pdf_src"+localAppId;
@@ -52,9 +52,9 @@ public class LocalApplication {
 
         //Send Message to sqs
         System.out.println("Send file to sqs");
-        SQSHelper sqsHelper = new SQSHelper(url);
+        SQSHelper localAppManagerSQS = new SQSHelper(url);
         MessageProtocol uploadSrc = new MessageProtocol("Download PDF", bucket, key, numOfPDFPerWorker,"","",localAppId);
-        sqsHelper.sendMessageToSQS(uploadSrc);
+        localAppManagerSQS.sendMessageToSQS(uploadSrc);
 
         //start manager
         System.out.println("Starting Manager");
@@ -64,7 +64,7 @@ public class LocalApplication {
         System.out.println("\nCheck SQS queue for a finish message");
         while(!gotResult)
         {
-            List<Message> messages = sqsHelper.getMessages();
+            List<Message> messages = localAppManagerSQS.getMessages();
             for(Message msg : messages){
                 MessageProtocol receivedMsg = new MessageProtocol(new JSONObject(msg.body()));
 //                System.out.println("LocalApp got msg with task: "+receivedMsg.getTask());
@@ -75,12 +75,12 @@ public class LocalApplication {
                         if(shouldTerminate){
                             System.out.println("Should terminate");
                             MessageProtocol terminateMsg = new MessageProtocol("Terminate", bucket,"",0,"",managerInstanceId,localAppId);
-                            sqsHelper.sendMessageToSQS(terminateMsg);
+                            localAppManagerSQS.sendMessageToSQS(terminateMsg);
                         }
                         gotResult = true;
-                        sqsHelper.deleteMessage(msg);
+                        localAppManagerSQS.deleteMessage(msg);
                     }else{ //Not a finished message so it's supposed to arrive to the manager, so we release it for him by changing the visibility time out to 0
-                        sqsHelper.releaseMessage(msg);
+                        localAppManagerSQS.releaseMessage(msg);
 //                        System.out.println("LocalApp released msg: "+receivedMsg.getTask());
                         try {
 //                            System.out.println("Going to sleep");
@@ -94,7 +94,7 @@ public class LocalApplication {
                 }
             }
         }
-        sqsHelper.close();
+        localAppManagerSQS.close();
         s3Helper.closeS3();
     }
 }

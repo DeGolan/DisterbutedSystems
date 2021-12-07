@@ -18,7 +18,6 @@ public class Worker {
         SQSHelper managerWorker=new SQSHelper("https://sqs.us-east-1.amazonaws.com/537488554861/Manager-Workers");
         WorkerHelper workerHelper=new WorkerHelper(workerManager);
 
-//        boolean isFinished=false;
         while (true){
             List<Message> messages= managerWorker.getMessages();
             for (Message message:messages){

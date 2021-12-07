@@ -25,7 +25,7 @@ public class ManagerHelper {
     private final AtomicInteger numOfWorkers;
     private final List<String> instancesId;
     private static String bucket;
-    private final int NUM_OF_THREADS=10;
+    private final int NUM_OF_THREADS=10; //Can be adjusted if needed
     private final ExecutorService executorService;
     private final String script = "#!/bin/bash\n"+
             "mkdir WorkerFiles\n"+
@@ -78,7 +78,7 @@ public class ManagerHelper {
         localManagerSQS.close();
 
     }
-    public static void uploadSummary(String localAppId,List<String> summaryFile){
+    public static void uploadSummary(String localAppId,List<String> summaryFile){ //TODO To check if it needs to be synchronized
         S3Helper s3Helper=new S3Helper();
         try {
             String path="/ManagerFiles/summaryFile"+localAppId+".txt";
@@ -127,14 +127,14 @@ public class ManagerHelper {
                 if(numOfWorkers.get()>12){ //To make sure that there are no more than 19 workers (12 to be sure)
                     break;
                 }
-                instancesId.add(createWorker());
+                instancesId.add(createWorker()); //Every worker we create return its instance id that later on we will be able to terminate him
                 numOfWorkers.incrementAndGet();
             }
          }
          for (MessageProtocol msg:msgs){
              managerWorkersSQS.sendMessageToSQS(msg);
          }
-        System.out.println("Starting new job with LocalAppId: "+localAppId);
+         System.out.println("Starting new job with LocalAppId: "+localAppId);
          startNewJob(numOfTasks,localAppId);
          s3Helper.closeS3();
      }

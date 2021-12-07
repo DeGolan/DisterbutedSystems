@@ -1,0 +1,62 @@
+Submitters: Omer Golan 316356153 & Roi Paz 313138067
+
+How to run the project:
+For every local app you will like to initialize, run from the cmd the following command: java -jar LoaclApp.jar inputFileName outputFileName n [terminate] //The terminate argument is optional.
+
+
+How the program works:
+At first, we upload the jars of the manager and the worker from the UploadJars class at the LocalApplication package.
+
+For each local application created the following steps occur:
+1. It receives the input arguments from the user.
+2. Upload the pdf source file to s3 to the bucket we created called "dsps12bucket" where the key is unique to that specific local app.
+3. Send the pdf in the localApp-Manager SQS.
+4. Check if the manager is active on the EC2 cloud. if it is not, it will start the manager. Those actions happens at the localHelper class by the methos startManager() and createManager().
+5. Check the SQS between the local app and manager for the finish message and then if the finish message arrived, sends terminate message to the SQS if needed.
+
+For the manager the following steps occur:
+1.Recieves messages form the localApp-Manager SQS and checks:
+1.1. If the message's task is "Download PDF" so the method distributeWork at the managerHelper class does the following things:
+1.1.1. Download the pdf source file from s3 and calculates the number of messages base on the file size.
+1.1.2. Create a worker for every n messages, if there are no running workers. If there are k active workers, and the new job requires m workers,
+         then the manager should create m-k new workers, if possible. In any case we added an if statement that says we can't create more than 12 workers at the same time.
+1.1.3. Send to the Manager-Worker SQS all the messages that downloaded from the s3.
+1.1.4. Call the method startNewJob that create new runnable instance (we create new runnable for each local app) that does the following things at the WorkersListeners class:
+1.1.4.1. Receive messages from the workers-Manager SQS.
+1.1.4.2. Handle the messages according to their status, upload them to the summaryFile's list and increment the number of responses. 
+1.1.4.3. If the number of the responses equals to the number of tasks so all messages were handled, the thread calls the uploadSummary method and finish his job
+1.1.5. The uploadSummary method upload for each local application it's summary file from the workers work and sends it to the local app using the localApp-Manager SQS.
+1.2. If the message's task is "Terminate" so the method terminate at the managerHelper class does the following things:
+1.2.1. Waits for all the threads to finish their jobs which mean that all the messages were handled by the workers.
+1.2.2. Terminate all the workers instances on the EC2 cloud.
+1.2.3. close all the SQSs.
+1.3. If the message's task is not "Terminate" or "Download PDF" so the message was supposed to arrive to the local app and the manager release the message back to the localApp-Manager SQS.
+1.4. If the task wasn't "Terminate", go back to section 1.1.
+2. Terminate itself.
+
+For each worker created the following steps occur:
+Repeatedly:
+1. Get a message from an SQS queue.
+2. Download the PDF file indicated in the message and try to perform the requested operation on that PDF file.
+2.1. If the pdf download succeeded, the worker uploads the path of the converted file to s3 and the workers-Manager SQS.
+2.2. If an error occurred, the worker sends the error message to the workers-Manager SQS.
+3. The worker delete the message from the workers-Manager SQS.
+
+
+Instances:  
+We used the ami:"ami-00e95a9222311e8ed" and instance type: t2.micro
+
+Time that took for our program to finish working on the input files:
+It took 12 minutes and 15 seconds for our program to finish while the pdf per worker argument was 300.
+
+Scalability and parallelism:
+Local apps: all the local apps run simultaneously, theoretically it's possible that 1 billion local apps will run at the same time but since each one of them runs independently we did not handle that case
+Workers: all the local apps run simultaneously on the EC2 cloud, we added limitation that no more than 12 workers will run at the same time, it can be different number according to the scalability of the AWS.
+Manager: in addition to the manager's instance that receives messages from the local apps, distribute the work to the workers and eventually handle the terminate process, we created a new thread for each local app that runs and its job is to process the messages from the workers that operates the tasks that came from the specific local app.
+So, if there are n local apps currently running there will be n+1 instances of the manager that will do their jobs in parallel.
+In term of scalability, we used the ExecutorService that creates thread pool on n instances that we give ahead and by that we maintain the scalability of the program. for example, if there are 1 million local apps and the n we inserted to the executor is 1000 there will be no more than 1000 thread running at the same time.
+
+Persistence: 
+When a message is drawn from the SQS there is a visibilityTimeout for 60 seconds so if a worker pulls a message from the SQS there are 60 seconds for him to finish his work on that message and during that time all of the other workers won't be able to pull this message.
+We limited the time that takes to download pdf file to 15 seconds (we checked and if it takes more time than that it will remain stuck), so a worker should finish his work by 60 seconds, otherwise something unexpected happened and then another worker will pull this message.
+Also, we added the method releaseMessage at the SQSHelper class which says that if someone pulled a message that wasn't meant for him he returns the message immediately to the SQS.

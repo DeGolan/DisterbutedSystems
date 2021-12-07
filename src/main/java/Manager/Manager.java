@@ -14,11 +14,11 @@ public class Manager {
         System.out.println("Manager is starting...");
 
         boolean isFinished = false;
-        ManagerHelper workHelper = new ManagerHelper("dsps12bucket");
+        ManagerHelper managerHelper = new ManagerHelper("dsps12bucket");
         SQSHelper localManager = new SQSHelper("https://sqs.us-east-1.amazonaws.com/537488554861/LocalApp-Manager");
 
 
-        System.out.println("Starting work loop...");
+//        System.out.println("Starting work loop...");
         String instanceId="";
         while (!isFinished) {
             List<Message> msgs = localManager.getMessages();
@@ -29,14 +29,14 @@ public class Manager {
                 if (task.equals("Terminate")) {
                     localManager.deleteMessage(msg);
                     System.out.println("Manager received Terminate msg");
-                    workHelper.terminate();
+                    managerHelper.terminate();
                     isFinished = true;
-                    instanceId = receivedMsg.getStatus();
+                    instanceId = receivedMsg.getStatus(); //The Manager ID in order to terminate him
 //                    System.out.println("Deleting Terminate msg");
 
                 } else if (task.equals("Download PDF")) {
                     System.out.println("Received Download PDF msg \nstarting to distribute Work...");
-                    workHelper.distributeWork(receivedMsg);
+                    managerHelper.distributeWork(receivedMsg);
                     localManager.deleteMessage(msg);
                 }else{ //A message that meant for one of the local apps, so we release it by changing the visibility time out to 0
                     localManager.releaseMessage(msg);
@@ -45,6 +45,6 @@ public class Manager {
         }
         System.out.println("Terminating my self...");
         localManager.close();
-        workHelper.terminateInstance(instanceId);
+        managerHelper.terminateInstance(instanceId);
     }
 }

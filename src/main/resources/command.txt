@@ -1,0 +1,5 @@
+/home/vagrant/IdeaProjects/DisterbutedSystems/src/main/resources/input-sample-2.txt /home/vagrant/IdeaProjects/DisterbutedSystems/src/main/resources/output 5 terminate
+
+java -jar LocalApp.jar /home/vagrant/IdeaProjects/DisterbutedSystems/src/main/resources/input1.txt /home/vagrant/IdeaProjects/DisterbutedSystems/src/main/resources/output1 300 terminate
+
+java -jar LocalApp.jar /home/vagrant/IdeaProjects/DisterbutedSystems/src/main/resources/input2.txt /home/vagrant/IdeaProjects/DisterbutedSystems/src/main/resources/output2 300 

@@ -9,7 +9,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class WorkersListener implements Runnable{
-    private final SQSHelper sqsHelper;
+    private final SQSHelper workersMangerSQS;
     private final List<String> summaryFile;
     private int numOfResponses;
     private final int numOfTasks;
@@ -17,9 +17,9 @@ public class WorkersListener implements Runnable{
 
 
 
-    public WorkersListener(SQSHelper sqsHelper,
+    public WorkersListener(SQSHelper workersMangerSQS,
                            int numOfTasks,String localAppId){
-        this.sqsHelper=sqsHelper;
+        this.workersMangerSQS =workersMangerSQS;
         this.summaryFile=new LinkedList<>();
         this.numOfResponses=0;
         this.numOfTasks=numOfTasks;
@@ -31,7 +31,7 @@ public class WorkersListener implements Runnable{
         boolean isFinished=false;
 
         while (!isFinished){
-            List<Message> receivedMessages=sqsHelper.getMessages();
+            List<Message> receivedMessages= workersMangerSQS.getMessages();
             for(Message message :receivedMessages){
                 MessageProtocol msg=new MessageProtocol(new JSONObject(message.body()));
                 if(msg.getLocalApp().equals(localAppId)){
@@ -50,7 +50,7 @@ public class WorkersListener implements Runnable{
                         summaryFile.add(task+"\t"+oldURL+"\t"+error);
                         numOfResponses++;
                     }
-                    sqsHelper.deleteMessage(message);
+                    workersMangerSQS.deleteMessage(message);
                     System.out.println("Thread: "+localAppId+" numOfTasks: "+numOfTasks+" numOfResponses: "+numOfResponses);
                 }
             }
