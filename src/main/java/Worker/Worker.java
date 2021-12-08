@@ -43,9 +43,7 @@ public class Worker {
                 System.out.println("Delete msg of: "+msg.getLocalApp());
                 managerWorker.deleteMessage(message);
             }
-
         }
-
     }
 
 

@@ -27,7 +27,6 @@ public void releaseMessage (Message m){
             SendMessageRequest send_msg_request = SendMessageRequest.builder()
                     .queueUrl(url)
                     .messageBody(msg.getJson().toString())
-                    //.delaySeconds(5) //TODO needed or not needed?
                     .build();
             sqsClient.sendMessage(send_msg_request);
         } catch (QueueNameExistsException e) {
@@ -50,6 +49,7 @@ public void releaseMessage (Message m){
                 .build();
         sqsClient.deleteMessage(deleteRequest);
     }
+
     public void close(){
         sqsClient.close();
     }

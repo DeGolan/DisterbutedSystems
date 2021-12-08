@@ -67,7 +67,6 @@ public class LocalApplication {
             List<Message> messages = localAppManagerSQS.getMessages();
             for(Message msg : messages){
                 MessageProtocol receivedMsg = new MessageProtocol(new JSONObject(msg.body()));
-//                System.out.println("LocalApp got msg with task: "+receivedMsg.getTask());
                 if(receivedMsg.getLocalApp().equals(localAppId)){ //Verify that this message belongs to this local app
                     if(receivedMsg.getTask().equals("finished")){
                         System.out.println("The manager finished his work");
@@ -81,12 +80,9 @@ public class LocalApplication {
                         localAppManagerSQS.deleteMessage(msg);
                     }else{ //Not a finished message so it's supposed to arrive to the manager, so we release it for him by changing the visibility time out to 0
                         localAppManagerSQS.releaseMessage(msg);
-//                        System.out.println("LocalApp released msg: "+receivedMsg.getTask());
                         try {
-//                            System.out.println("Going to sleep");
                             //To keep the local apps synchronized
                             Thread.sleep(5000);
-//                            System.out.println("Good morning");
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         }

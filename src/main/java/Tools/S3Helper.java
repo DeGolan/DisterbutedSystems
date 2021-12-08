@@ -16,9 +16,7 @@ import java.util.List;
 public class S3Helper {
     private S3Client s3;
     public S3Helper(){
-
         s3 = S3Client.builder().region(Region.US_EAST_1).build();
-
     }
 
     //uploading the pdf_src to the s3
@@ -100,13 +98,11 @@ public class S3Helper {
         return  msgList;
 
     }
+
     public void closeS3(){
         System.out.printf("%n");
         System.out.println("Closing the connection to {S3}");
         s3.close();
         System.out.println("Connection closed");
     }
-
 }
-
-//"/home/vagrant/DistributedSystems/src/main/resources/input-sample-1.txt"

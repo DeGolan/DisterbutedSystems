@@ -8,7 +8,6 @@ import org.apache.pdfbox.rendering.PDFRenderer;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.apache.pdfbox.tools.PDFText2HTML;
 
-
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -23,7 +22,6 @@ public class WorkerHelper {
 
     }
     //uploading the pdf_src to the s3
-
     public String convertPDF(String fileURL, String task,String localAppId) {
         String returnPath="";
         try {
@@ -51,9 +49,7 @@ public class WorkerHelper {
             System.out.println("Sending error msg");
             MessageProtocol msg=new MessageProtocol(task,"",error.getMessage(),0,fileURL,"error",localAppId);
             workersManger.sendMessageToSQS(msg);
-
         }
-
         return returnPath;
     }
     private String toImage(PDDocument document,String filename,String localAppId) throws IOException {

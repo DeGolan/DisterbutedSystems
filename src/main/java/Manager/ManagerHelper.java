@@ -54,9 +54,6 @@ public class ManagerHelper {
     }
     public void terminate(){
         System.out.println("In terminate");
-//        System.out.println("executorService.shutdown()");
-
-        executorService.shutdown(); //TODO check if two times shutdown is needed
        try{
            executorService.shutdown();
            while(!executorService.awaitTermination(30, TimeUnit.SECONDS)){} //Waits for all the threads to finish their jobs
@@ -70,7 +67,6 @@ public class ManagerHelper {
         //Terminate all the workers
         for(String id:instancesId){
             terminateInstance(id);
-//            System.out.println("instance "+id+"has been terminated");
         }
         System.out.println("All instances have been terminated");
         managerWorkersSQS.close();
@@ -78,7 +74,7 @@ public class ManagerHelper {
         localManagerSQS.close();
 
     }
-    public static void uploadSummary(String localAppId,List<String> summaryFile){ //TODO To check if it needs to be synchronized
+    public static void uploadSummary(String localAppId,List<String> summaryFile){
         S3Helper s3Helper=new S3Helper();
         try {
             String path="/ManagerFiles/summaryFile"+localAppId+".txt";
@@ -110,7 +106,7 @@ public class ManagerHelper {
         String bucket=receivedMessage.getBucketName();
         String key=receivedMessage.getKey();
         String localAppId=receivedMessage.getLocalApp();
-        System.out.println("Starting distributeWork with LocalAppId: "+localAppId);
+        System.out.println("Starting distribute work with LocalAppId: "+localAppId);
         int numOfPDFPerWorker=receivedMessage.getNumOfPDFPerWorker();
 
          List<MessageProtocol> msgs= s3Helper.downloadPDFList(key,bucket,localAppId);
@@ -163,21 +159,15 @@ public class ManagerHelper {
                 .resources(instanceId)
                 .tags(tag)
                 .build();
-
         try {
             ec2Client.createTags(tagRequest);
             System.out.printf(
                     "Successfully started EC2 Instance %s based on AMI %s",
                     instanceId, amiId);
-
-
         } catch (Ec2Exception e) {
             System.err.println(e.awsErrorDetails().errorMessage());
             System.exit(1);
         }
         return  instanceId;
-
     }
-
-
 }
