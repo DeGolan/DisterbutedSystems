@@ -1,4 +1,4 @@
-Submitters: Omer Golan 316356153 & Roi Paz 313138067
+Submitters: Omer Golan & Roi Paz 
 
 How to run the project:
 For every local app you will like to initialize, run from the cmd the following command: java -jar LoaclApp.jar inputFileName outputFileName n [terminate] //The terminate argument is optional.
